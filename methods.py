@@ -4,6 +4,13 @@ import xgboost as xgb
 from sklearn. metrics import r2_score, mean_squared_error
 from sklearn import linear_model
 
+"""
+Documentation:
+- Linear models:https://scikit-learn.org/stable/modules/linear_model.html
+- Linear support vector regression: https://scikit-learn.org/stable/modules/generated/sklearn.svm.LinearSVR.html#sklearn.svm.LinearSVR
+- Gradient boosting regression: https://xgboost.readthedocs.io/en/latest/python/python_api.html
+"""
+
 # Might include own class for supervised/unsupervised learning
 
 class Regression():
@@ -20,34 +27,38 @@ class Regression():
         self.data = X
         self.target = y
 
-    def svm(self,Kfold = False):
+    def svm(self):
         """
         Regression using Support Vector Machines (SVM)
         """
-        self.clf = svm.SVR()
-        fit = self.clf.fit(X, y)
+        self.clf = svm.LinearSVR()
+        fit = self.clf.fit(self.X, self.y)
+        self.weights = self.clf.coeff_
 
-    def linear(self,regtype,Kfold = False):
+    def linear(self,regtype):
         """
         -----------------------
         Linear regression method
         ------------------------
         Parameters:
-        Type: Either Ridge, LinearRegression,Lasso
+        regtype: Either Ridge, LinearRegression,Lasso
         """
         self.clf = linear_model.regtype()
-        fit = self.clf.fit(X,y)
+        fit = self.clf.fit(self.X,self.y)
+        self.weights = self.clf.coeff_
+        self.inter
 
-    def weak_regressor(self, Kfold = False):
+    def weak_regressor(self):
         """
-        Weak regressor method
+        Weak regressor method, gradient boosting
         """
         self.clf = xgb.XGBRegressor()
-        fit = clf.self.fit()
+        fit = self.clf.fit(self.X,self.y)
+        self.weights = self.clf.coef_  # only for booster = gblinear (linear learners)
 
-    def prediction(self):
+    def evalute(self,x_test):
         """
         Perform prediction.
         Use test or validation
         """
-        pred = self.clf.prediction()
+        pred = self.clf.predict(x_test)
