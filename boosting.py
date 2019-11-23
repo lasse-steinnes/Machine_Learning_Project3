@@ -66,7 +66,7 @@ def boosting():
     k = 10 # the number of Adaboost rounds
     n = X_train.shape[0]
     W = [1/n for i in range(0,n)]
-    W = np.array(weights)
+    W = np.array(W)
     
     for r in range(1,k):
         print ('r is:', r)
