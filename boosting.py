@@ -65,17 +65,18 @@ def boosting():
     reg_weak = tree.DecisionTreeRegressor(max_depth = 2)
     k = 10 # the number of Adaboost rounds
     n = X_train.shape[0]
-    weights = [1/n for i in range(0,n)]
-    weights = np.array(weights)
+    W = [1/n for i in range(0,n)]
+    W = np.array(weights)
     
     for r in range(1,k):
         print ('r is:', r)
-        W = weights / np.sum(weights)
-        reg_weak.fit(X_train, y_train, sample_weight = W)
+        W_norm = W / np.sum(W)
+        
+        reg_weak.fit(X_train, y_train, sample_weight = W_norm)
         y_predict = reg_weak.predict(X_train)
+        
         err = np.absolute(y_predict - y_train)
         err_sum = np.sum(err)
-        
         loss = err/ err_sum
         loss_ave = np.sum(loss*W)
         
@@ -83,7 +84,7 @@ def boosting():
             break
         
         beta = loss_ave / (1-loss_ave)
-        weights = weights * (beta **(1-loss_ave))
+        W = W * (beta **(1-loss_ave))
         
 def MSE(data, model):
     """
