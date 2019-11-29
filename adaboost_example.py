@@ -2,10 +2,10 @@
 """
 adaboost example
 """
-from adaboosting import Adaboost
+from adaboosting import AdaBoost
 import matplotlib.pyplot as plt
 
-ada = Adaboost(100, 3)
+ada = AdaBoost(100, 3)
 ada.initiateBoost('linear')
 y_ensemble = ada.ensemble_predict(False)
 

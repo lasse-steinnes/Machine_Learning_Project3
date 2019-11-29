@@ -15,7 +15,7 @@ def importData():
         temp = pd.read_csv(files)
         file.append(temp)
         
-    X_temp = file[0]
+    X_temp = file[3]
     chemical_comp_temp = file[1]
         
     X = X_temp.drop(columns =['critical_temp'])
