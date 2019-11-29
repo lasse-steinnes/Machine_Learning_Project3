@@ -3,7 +3,7 @@
 test adaboost
 """
 from helper_functions import scaler, MSE, importData
-from adaboosting import shuffleAndsplit
+from adaboosting import AdaBoost
 from sklearn.ensemble import AdaBoostRegressor
 import matplotlib.pyplot as plt
 from sklearn import tree
@@ -11,7 +11,7 @@ import numpy as np
 
 # Create the dataset
 X, y = importData()
-X_train, X_test, y_train, y_test = shuffleAndsplit(X, y)
+X_train, X_test, y_train, y_test = AdaBoost.shuffleAndsplit(X, y)
 
 rng = np.random.RandomState(1)
 

@@ -8,7 +8,7 @@ from sklearn import tree
 import numpy as np
 import pandas as pd
 
-class Adaboost:
+class AdaBoost:
     
     def __init__(self, iterations, depth):
         
@@ -16,7 +16,7 @@ class Adaboost:
         self.iterations = iterations
         self.depth = depth
         
-        X_train, X_test, self.y_train, self.y_test = Adaboost.shuffleAndsplit(self, X, y)
+        X_train, X_test, self.y_train, self.y_test = AdaBoost.shuffleAndsplit(self, X, y)
         self.X_train, self.X_test = scaler(X_train, X_test)
         self.n = X_train.shape[0]
     
@@ -47,11 +47,11 @@ class Adaboost:
             
             # decide on loss function
             if loss_func == 'linear':
-                loss = Adaboost.linear(self, y_predict_train, self.y_train)
+                loss = AdaBoost.linear(self, y_predict_train, self.y_train)
             elif loss_func == 'square':
-                loss = Adaboost.square(self, y_predict_train, self.y_train)
+                loss = AdaBoost.square(self, y_predict_train, self.y_train)
             elif loss_func == 'exponential':
-                loss = Adaboost.exponential(self, y_predict_train, self.y_train)
+                loss = AdaBoost.exponential(self, y_predict_train, self.y_train)
             
             #find weighted loss and update prediction
             loss_ave = np.sum(loss * W_norm)
@@ -70,7 +70,7 @@ class Adaboost:
     
     def ensemble_predict(self, beta_stopping = False):
         if beta_stopping == True:
-            max_iteration = Adaboost.beta_eval(self)
+            max_iteration = AdaBoost.beta_eval(self)
         else:
             max_iteration = self.iterations
             
