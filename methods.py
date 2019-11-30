@@ -1,8 +1,12 @@
 ### Importing packages for SVM, XGB, and regression ###
 from sklearn import svm
 import xgboost as xgb
+from sklearn.preprocessing import StandardScaler, PolynomialFeatures
+from sklearn.model_selection import train_test_split
 from sklearn. metrics import r2_score, mean_squared_error
 from sklearn import linear_model
+from pathlib import Path
+import pandas as pd 
 
 """
 Documentation:
@@ -24,9 +28,12 @@ class Regression():
 
     Must have preprocessed input, since fit_intercept = False
     """
-    def __init__(self,X,y):
+    def __init__(self,X=None,y=None):
         self.data = X
         self.target = y
+        self.scaled = False
+        self.splited = False
+        self.has_evaluation = False
 
     def svm(self, epsilon = 0.0, penalty = 1.0, tol = 0.0001):
         """
@@ -64,7 +71,7 @@ class Regression():
 
         # Choosing linear regression method
         #l1 regularisation
-        if regtype == 'Lasso':
+        if regtype == 'LASSO':
             self.clf = linear_model.Lasso(alpha=self.lam, max_iter=10e5,tol = self.tol, precompute = True, fit_intercept = False)
 
         #l2 regularisation
@@ -76,7 +83,10 @@ class Regression():
             self.clf = linear_model.LinearRegression(fit_intercept = False)
 
         fit = self.clf.fit(self.X,self.y)
-        self.weights = self.clf.coeff_
+        self.weights = self.clf.coef_
+        pred = Regression.predict(self, self.X)
+        MSE = mean_squared_error(self.y, pred)
+        return MSE, self.clf.score(self.X, self.y)
 
     def weak_regressor(self,booster, max_dp, n,eta = 0.1,gamma = 0, alpha = 0, lam = 1):
         """
@@ -104,9 +114,82 @@ class Regression():
         if booster == 'gblinear':
             self.weights = self.clf.coef_  # only for linear learners
 
-    def evalute(self,x_test):
+    def predict(self,x_test, rescaled=False):
         """
-        Perform prediction.
-        Use test or validation
+        Perform prediction. If rescaled =True, the model output is rescaled from [0,1] to to [0, ymax] (only applicable if scale was used)
         """
         pred = self.clf.predict(x_test)
+        if rescaled:
+            return self.ymax *pred
+        else:
+            return pred
+
+    def evaluation(self, X=None, y=None, eval = False):
+        """
+        perform evaluation of the model on given X,y
+        if both None use test or evaluation
+        returns the MSE and R2
+        """
+        if X == None and y == None:
+            if eval:
+                X = self.X_eval
+                y = self.y_eval
+            else:
+                X = self.X_test
+                y = self.y_test
+        pred = Regression.predict(self,X)
+        MSE = mean_squared_error(pred, y)
+        R2 = self.clf.score(X,y) #score might return different things for different models!
+        return MSE, R2
+
+    def importData(self, filepath):
+        """
+        Imports training data train.csv from filepath
+        sets X, y numpy arrays
+        """
+        data_path = Path(filepath) # data should be stored in folder Data
+        df = pd.read_csv(data_path/'train.csv')
+            
+        self.y = df["critical_temp"].to_numpy()
+        self.X = df.drop(columns = ["critical_temp"]).to_numpy()
+
+    def scale(self):
+        """
+        scales X according to standard scaler
+        scales y to [0,1] and keeps ymax for reversed scaling of prediction
+        """
+        self.scaled = True
+        X_scale = StandardScaler()
+        self.X = X_scale.fit_transform(self.X)
+        self.ymax = self.y.max()
+        self.y /= self.ymax
+
+    def generate_polynomic_features(self, order=1):
+        """
+        create the design matrix with polynomial features
+        """
+        feature = PolynomialFeatures(degree=order,)
+        self.X =feature.fit_transform(self.X)
+
+
+    def train_test_eval_split(self, test_size = 0.2, eval_size = 0.1):
+        """
+        splits X,y in training, testing and evaluation targets
+        if eval size 0 this is ignored
+        sizes are relative fraction to the total sample size
+        """
+        self.splited = True
+        self.has_evaluation = eval_size != 0
+
+        self.X, X_temp, self.y, y_temp = train_test_split(self.X, self.y, test_size=test_size +eval_size)
+
+        if self.has_evaluation:
+            self.X_test, self.X_eval, self.y_test, self.y_eval = train_test_split(X_temp, y_temp, test_size = eval_size/(eval_size + test_size))
+        else:
+            self.X_test = X_temp
+            self.y_test = y_temp
+
+
+
+
+    
