@@ -1,0 +1,5 @@
+From grid search between 1e-9 and 1e-1 with 20 points
+lam       1e-09
+MSE     21.1767
+R2     0.610404
+
