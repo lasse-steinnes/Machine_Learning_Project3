@@ -3,3 +3,26 @@ lam    0.00526316
 MSE       17.5257
 R2       0.733483
 
+From BaysOpt: lam [0,1], 100 pre guesses, 50 updates, exploration 0.01, 20 bootstraps
+av best lam = 0.1892403743946958
+av MSE = +- 17.599157139801886	(evaluated on unseen data, for currently best lam)
+
+
+Best from bootstrap (on evaluation data)
+unc. T_c: +- 17.071165674617472
+Optimal lam: 0.11953876849304934
+
+
+unc. T_c: +- 17.287098324460608
+Optimal lam: 0.6104159159813192
+
+unc. T_c: +- 17.254677855068145
+Optimal lam: 0.2958831073976873
+
+
+Depending on data set selection, sampling, etc, not too stable? very noisy MSE?
+
+sklearn bayse:
+unc. T_c: +- 17.296673599149564
+Optimal pars: {'alpha_1': 1e-06, 'alpha_2': 1e-06, 'compute_score': False, 'copy_X': True, 'fit_intercept': True, 'lambda_1': 1e-06, 'lambda_2': 1e-06, 'n_iter': 300, 'normalize': False, 'tol': 0.001, 'verbose': False}
+
