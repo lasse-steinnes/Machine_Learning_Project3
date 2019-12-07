@@ -1,0 +1,41 @@
+Best model:
+train: 
+MSE: 0.009135236
+R2: 0.732871661
+unc. Tc: 17.682008826
+lambda: 0.030604754
+
+test: 
+MSE: 0.008478437
+R2: 0.752551267
+unc. Tc: 17.034508798
+lambda: 0.030604754
+
+eval: 
+MSE: 0.009179369
+R2: 0.736938880
+unc. Tc: 17.724669288
+lambda: 0.030604754
+
+Average model:
+train CV reults: 
+MSE: 0.008995290 +- 0.000073261
+R2: 0.737604332 +- 0.002117251
+unc. Tc: 17.545903075 +- 0.071455261
+
+test CV reults: 
+MSE: 0.009078787 +- 0.000240699
+R2: 0.735102285 +- 0.007341250
+unc. Tc: 17.625758431 +- 0.232881110
+
+eval CV reults: 
+MSE: 0.009081998 +- 0.000406886
+R2: 0.734953703 +- 0.010536382
+unc. Tc: 17.626034776 +- 0.393173773
+
+average lambda: 0.014780408 +- 0.015231230
+
+Most importand parameters based on best model:
+1. importand parameter: wtd_entropy_FusionHeat
+2. importand parameter: wtd_gmean_ThermalConductivity
+3. importand parameter: gmean_ThermalConductivity

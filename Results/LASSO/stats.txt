@@ -1,22 +1,40 @@
-From grid search between 1e-9 and 1e-1 with 20 points
-lam       1e-09
-MSE     21.1767
-R2     0.610404
+Best model:
+train: 
+MSE: 0.009063954
+R2: 0.735890106
+unc. Tc: 17.612887972
+lambda: 0.000001000
 
-From BaysOpt: lam [0,1], 100 pre guesses, 50 updates, exploration 0.01, 20 bootstraps
-av best lam = 0.001100238303869855
-av MSE = +- 18.24578597651063 (evaluated on unseen data, for currently best lam)
+test: 
+MSE: 0.008898931
+R2: 0.741179227
+unc. Tc: 17.451817213
+lambda: 0.000001000
 
-Best par
+eval: 
+MSE: 0.008882423
+R2: 0.737292596
+unc. Tc: 17.435622204
+lambda: 0.000001000
 
-unc. T_c: +- 17.4545424646756
-Optimal lam: 0.00015472996124876737
+Average model:
+train CV reults: 
+MSE: 0.009004869 +- 0.000065624
+R2: 0.737192764 +- 0.001749691
+unc. Tc: 17.555276845 +- 0.064014484
 
-unc. T_c: +- 17.554153352544255
-Optimal lam: 0.0002778915993095765
+test CV reults: 
+MSE: 0.009040267 +- 0.000130613
+R2: 0.736781709 +- 0.004174368
+unc. Tc: 17.589423058 +- 0.127013615
 
-unc. T_c: +- 17.266583388898184
-Optimal lam: 2.3193891627970586e-05
+eval CV reults: 
+MSE: 0.009083518 +- 0.000418895
+R2: 0.734910504 +- 0.010830237
+unc. Tc: 17.627472553 +- 0.404730047
 
 
-
+Most importand parameters based on best model:
+1. importand parameter: wtd_std_fie
+2. importand parameter: mean_fie
+3. importand parameter: std_FusionHeat
