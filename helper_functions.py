@@ -7,6 +7,33 @@ from sklearn.preprocessing import StandardScaler
 import pandas as pd
 import numpy as np
 from pathlib import Path
+from methods import Regression
+
+def DataWorkflow(file_path =Path("./Data")):
+    data = Regression()
+    data.importData(file_path)
+    data.scale()
+    X, y = data.X, data.y
+    np.random.seed(2019)
+    np.random.shuffle(X)
+    np.random.seed(2019)
+    np.random.shuffle(y)
+    return X, y, data.ymax
+
+def CV(X, y, folds = 10):
+    """
+    X is shape (samples,features)
+    y is shapes (samples,)
+    """
+    Xtest = np.array_split(X, folds, axis = 0)
+    ytest = np.array_split(y, folds, axis = 0)
+
+    Xtrain =[ np.vstack(Xtest[:i]+Xtest[i+1:]) for i in range(folds)]
+    ytrain =[ np.hstack(ytest[:i]+ytest[i+1:]) for i in range(folds)]
+    return Xtrain, Xtest, ytrain, ytest
+
+
+
 
 def importData():
     data_path = Path("./Data/") # data should be stored in folder Data
