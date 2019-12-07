@@ -81,7 +81,6 @@ class Regression():
         # Ordinary least squares
         else:
             self.clf = linear_model.LinearRegression(fit_intercept = False)
-
         fit = self.clf.fit(self.X,self.y)
         self.weights = self.clf.coef_
         pred = Regression.predict(self, self.X)
@@ -130,7 +129,7 @@ class Regression():
         if both None use test or evaluation
         returns the MSE and R2
         """
-        if X == None and y == None:
+        if X.all() == None and y.all() == None:
             if eval:
                 X = self.X_eval
                 y = self.y_eval
@@ -188,6 +187,8 @@ class Regression():
         else:
             self.X_test = X_temp
             self.y_test = y_temp
+
+        
 
 
 
