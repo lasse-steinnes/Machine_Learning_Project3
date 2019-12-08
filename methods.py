@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn. metrics import r2_score, mean_squared_error
 from sklearn import linear_model
 from pathlib import Path
-import pandas as pd 
+import pandas as pd
 
 """
 Documentation:
@@ -35,13 +35,13 @@ class Regression():
         self.splited = False
         self.has_evaluation = False
 
-    def svm(self, epsilon = 0.0, penalty = 1.0, tol = 0.0001):
+    def svm(self,type_, epsilon = 0.0, penalty = 1.0, tol = 0.0001):
         """
         ---------------------------------------------
         Regression using Support Vector Machines (SVM)
         ---------------------------------------------
         Parameters:
-        epsilon: parameter in loss function
+        epsilon: Parameter in loss function. Defines margin where no penalty is given to errors.
         penalty: L2-penalty for error term. The larger, the less regularisation is used.
         tol: Tolerance for stopping criteria
         loss: Set to epsilon_insensitive, standard SVR
@@ -49,10 +49,13 @@ class Regression():
         self.penalty = penalty
         self.eps = epsilon
         self.tol = tol
-
         self.clf = svm.LinearSVR(epsilon=self.eps, tol=self.tol, C=self.penalty, loss='epsilon_insensitive', fit_intercept=False, max_iter=10e5)
-        fit = self.clf.fit(self.X, self.y)
-        self.weights = self.clf.coeff_
+        fit = self.clf.fit(self.X,self.y)
+        self.weights = self.clf.coef_
+        pred = Regression.predict(self, self.X)
+        MSE = mean_squared_error(self.y, pred)
+        return MSE, self.clf.score(self.X, self.y)
+
 
     def linear(self,regtype, lam = 0.01, tol = 0.001):
         """
@@ -148,7 +151,7 @@ class Regression():
         """
         data_path = Path(filepath) # data should be stored in folder Data
         df = pd.read_csv(data_path/'train.csv')
-            
+
         self.y = df["critical_temp"].to_numpy()
         self.X = df.drop(columns = ["critical_temp"]).to_numpy()
 
@@ -187,10 +190,3 @@ class Regression():
         else:
             self.X_test = X_temp
             self.y_test = y_temp
-
-        
-
-
-
-
-    
