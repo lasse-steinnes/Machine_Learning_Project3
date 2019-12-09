@@ -9,13 +9,10 @@ import pandas as pd
 import numpy as np
 from helper_functions import DataWorkflow, CV
 from tqdm import tqdm
+from pathlib import Path
 
-X,y,ymax = DataWorkflow()
-iter_sch = [100, 50, 20]
-for i,loss in enumerate(["linear", "square", "exponential"]):
-    
-    toi = BoostCV(X, y, ymax, loss_func, iter_sch, folds = 10, depth = 2)
-    
+filep = Path("./Results/")
+
 def plot ():
     plt.figure()
     plt.plot(ada.y_train, y_ensemble, ".", label="adaboost", linewidth=2)
@@ -26,18 +23,30 @@ def plot ():
     plt.legend()
     plt.show()
 
-def BoostCV(X, y, ymax, loss, iter_sch, folds = 10, depth = 2):
+def boostCV(X, y, ymax, loss, iter_sch, folds = 10, depth = 2):
     
-    toi = pd.Dataframe(columns = ['MSE', 'R2', 'iter', 'tot_iter' ] + ["weight%i"%i for i in range(X.shape[0])])
+    toi = pd.DataFrame(columns = ['MSE', 'R2', 'iter', "depth" ]) #+ ["beta%i"%i for i in range(iter_sch[0])])
     Xtrain, Xtest, ytrain, ytest = CV(X,y, folds =folds)
-    ada = Adaboost()
+    
     for i in tqdm(range(folds)):
-        
-        Adaboost.X_train = Xtrain[i]
-        Adaboost.y_train = ytrain[i]
-        ada = AdaBoost(tot_iter, depth)
-        ada.initiateBoost(loss_func)
-        y_ensemble = ada.ensemble_predict(False)
-        
+        for i,loss_func in enumerate(["linear", "square", "exponential"]):
+            for itera in iter_sch:
+                for depth in depth_sch:
+                    ada = AdaBoost(itera, depth)
+                    ada.X_train = Xtrain[i]
+                    ada.y_train = ytrain[i]
+                    ada.initiateBoost(loss_func)
+                    MSE, R2 = ada.ensemble_predict(False)
+                    
+                    d = {"MSE": MSE, "R2":R2, "iter": itera, "depth": depth }
+                    #d.update({"beta%i"%k:ada.beta[k] for k in range(itera)})
+                    toi = toi.append(d, ignore_index=True)
     
     return toi
+
+X, y, ymax = DataWorkflow()
+iter_sch = [100, 50, 20]
+depth_sch = [3,2,1]
+    
+toi = boostCV(X, y, ymax, iter_sch, depth_sch, folds = 10)
+toi.to_csv(filep/'adaboost'/'toi.csv')
