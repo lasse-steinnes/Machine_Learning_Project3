@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from sklearn import tree
 import numpy as np
 import pandas as pd
-
+from sklearn.metrics import mean_squared_error, r2_score
 
 class AdaBoost:
     
@@ -58,6 +58,7 @@ class AdaBoost:
             loss_ave = np.sum(loss * W_norm)
             beta = loss_ave / (1-loss_ave)
             self.beta.append(beta)
+            
             self.test_p += beta* y_predict_test
             self.training_p += beta* y_predict_train
             
@@ -69,7 +70,7 @@ class AdaBoost:
             #update weights
             W = W_norm * (beta**(1-loss))
     
-    def ensemble_predict(self, beta_stopping = False):
+    def ensemble_eval(self, beta_stopping = False):
         if beta_stopping == True:
             max_iteration = AdaBoost.beta_eval(self)
         else:
@@ -80,7 +81,9 @@ class AdaBoost:
             weight = self.y_p[i] * self.beta[i]
             ensemble_y += weight
         
-        return ensemble_y
+        MSE = mean_squared_error(self.y_test, ensemble_y)
+        R2 = R2_score(self.y_test, ensemble_y)
+        return MSE, R2
             
     def shuffleAndsplit(self, X, y):
         curr_seed= 0
