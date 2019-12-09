@@ -139,7 +139,7 @@ def pred_vs_actual(X,y,ymax, weights, filepath):
 
 filep = Path("./Results/")
 epsilon = [10**(-i) for i in range(1,6)]
-penalty = [[10**i for i in range(1,6)] + [10**(-i) for i in range(7)] + [2*10**(-i) for i in range(1,7)] + [4*10**(-i) for i in range(1,7)] + [6*10**(-i) for i in range(1,7)] +[8*10**(-i) for i in range(1,7)]]
+penalty = [[10**i for i in range(1,6)] + [10**(-i) for i in range(7)] + [2*10**(-i) for i in range(1,7)] + [4*10**(-i) for i in range(1,7)] + [6*10**(-i) for i in range(1,7)]]
 penalty = penalty[0]
 print('Epsilon:{:}'.format(epsilon))
 print('Penalty:{:}'.format(penalty))
@@ -152,10 +152,10 @@ ones = np.ones((X.shape[0],1))
 X = np.hstack([ones,X])
 
 features = X.shape[1]
-
+reg = "SVM"
 print('Regression: SVM')
 print("Grid")
-toi =SVM_CV(X,y,ymax,epsilon,penalty, folds =10)
+toi =SVM_CV(X,y,ymax,epsilon,penalty, folds =5)
 toi.to_csv(filep/reg/'toi.csv')
 best_par = SVM_stats(toi, filep/reg, plot_par=True, features= features, skip_eval=skip)
 pred_vs_actual(X[::50], y[::50], ymax , best_par, filep/reg)
