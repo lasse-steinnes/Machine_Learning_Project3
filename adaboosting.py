@@ -8,6 +8,7 @@ from sklearn import tree
 import numpy as np
 import pandas as pd
 
+
 class AdaBoost:
     
     def __init__(self, iterations, depth):
