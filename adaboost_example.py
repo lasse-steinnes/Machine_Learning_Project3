@@ -6,7 +6,6 @@ Script for running Adaboost example
 from adaboosting import AdaBoost
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 from helper_functions import DataWorkflow, CV
 from tqdm import tqdm
 from pathlib import Path
@@ -23,25 +22,32 @@ def plot ():
     plt.legend()
     plt.show()
 
-def boostCV(X, y, ymax, loss, iter_sch, folds = 10, depth = 2):
+def boostCV(X, y, ymax, iter_sch, depth, folds = 10):
     
-    toi = pd.DataFrame(columns = ['MSE', 'R2', 'iter', "depth" ]) #+ ["beta%i"%i for i in range(iter_sch[0])])
+    toi = pd.DataFrame(columns = ['MSE', 'R2', "data set", 'iter', "depth", "loss function" ]) #+ ["beta%i"%i for i in range(iter_sch[0])])
     Xtrain, Xtest, ytrain, ytest = CV(X,y, folds =folds)
-    
-    for i in tqdm(range(folds)):
+   
+    for i in tqdm(0,range(1)):
         for i,loss_func in enumerate(["linear", "square", "exponential"]):
             for itera in iter_sch:
                 for depth in depth_sch:
-                    ada = AdaBoost(itera, depth)
-                    ada.X_train = Xtrain[i]
-                    ada.y_train = ytrain[i]
-                    ada.initiateBoost(loss_func)
-                    MSE, R2 = ada.ensemble_predict(False)
+                    print ('iteratoin', itera)
+                    ada = AdaBoost(itera, depth,Xtrain[i],ytrain[i],Xtest[i],ytest[i])
                     
-                    d = {"MSE": MSE, "R2":R2, "iter": itera, "depth": depth }
+                    ada.initiateBoost(loss_func)
+                    MSEtrain, R2train, MSEtest, R2test, MSEeval, R2eval = ada.ensemble_eval(False)
+                    
+                    d = {"MSE": MSEtrain, "data set": "train", "R2":R2train, "iter": itera, "depth": depth, "loss function": loss_func }
                     #d.update({"beta%i"%k:ada.beta[k] for k in range(itera)})
                     toi = toi.append(d, ignore_index=True)
-    
+                    
+                    d = {"MSE": MSEtest, "R2":R2test, "data set": "test", "iter": itera, "depth": depth, "loss function": loss_func }
+                    toi = toi.append(d, ignore_index=True)
+                    
+                    d = {"MSE": MSEeval, "R2":R2eval, "data set": "evaluation", "iter": itera, "depth": depth, "loss function": loss_func }
+                    toi = toi.append(d, ignore_index=True)
+                    
+                    
     return toi
 
 X, y, ymax = DataWorkflow()

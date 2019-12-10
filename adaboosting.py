@@ -6,20 +6,19 @@ from helper_functions import scaler, MSE, importData
 from sklearn.model_selection import train_test_split
 from sklearn import tree
 import numpy as np
-import pandas as pd
 from sklearn.metrics import mean_squared_error, r2_score
 
 class AdaBoost:
     
-    def __init__(self, iterations, depth):
+    def __init__(self, iterations, depth, X_train, y_train, X_test, y_test, X_eval , y_eval):
         
-        X, y = importData()
+        #X, y = importData()
         self.iterations = iterations
         self.depth = depth
         
-        X_train, X_test, self.y_train, self.y_test = AdaBoost.shuffleAndsplit(self, X, y)
-        self.X_train, self.X_test = scaler(X_train, X_test)
-        self.n = X_train.shape[0]
+        self.X_train, self.y_train, self.X_test, self.y_test = X_train, y_train, X_test, y_test #AdaBoost.shuffleAndsplit(self, X, y)
+        self.X_eval, self.y_eval = X_eval, y_eval
+        self.n = self.X_train.shape[0]
     
     def initiateBoost(self, loss_func):
         '''
@@ -31,14 +30,15 @@ class AdaBoost:
         self.beta = [] #list of all betas
         self.y_p = [] #list of all training prediction arrays 
         self.test_p = np.array([0.0 for i in range(0,len(self.y_test))])
-        self.training_p = np.array([0.0 for i in range(0,len(self.y_train))])
-        
+        self.train_p = np.array([0.0 for i in range(0,len(self.y_train))])
+        self.trees = []
         for i in range(0, self.iterations+1): 
             # renormalise the weights
             W_norm = W / np.sum(W)
             
             # fit a weak decision tree
             reg_weak = tree.DecisionTreeRegressor(max_depth = self.depth)
+            
             reg_weak.fit(self.X_train, self.y_train, sample_weight = W_norm)
             
             # predict on train and test
@@ -60,7 +60,7 @@ class AdaBoost:
             self.beta.append(beta)
             
             self.test_p += beta* y_predict_test
-            self.training_p += beta* y_predict_train
+            self.train_p += beta* y_predict_train
             
             #breaking function - not well understood
             if loss_ave > 0.5:
@@ -69,7 +69,12 @@ class AdaBoost:
             
             #update weights
             W = W_norm * (beta**(1-loss))
-    
+            self.trees.append(reg_weak)
+        #predict on evaluation data
+        for i in range(0,self.iterations+1):
+            eval_p = self.trees[i].predict(self.X_eval)
+            self.eval_p += self.beta[i] * eval_p
+        
     def ensemble_eval(self, beta_stopping = False):
         if beta_stopping == True:
             max_iteration = AdaBoost.beta_eval(self)
@@ -81,9 +86,17 @@ class AdaBoost:
             weight = self.y_p[i] * self.beta[i]
             ensemble_y += weight
         
-        MSE = mean_squared_error(self.y_test, ensemble_y)
-        R2 = R2_score(self.y_test, ensemble_y)
-        return MSE, R2
+        MSE_train = mean_squared_error(self.y_train, self.train_p)
+        MSE_test = mean_squared_error(self.y_test, self.test_p)
+        R2_train = r2_score(self.y_train, self.train_p)
+        R2_test = r2_score(self.y_test, self.test_p)
+        
+        MSE_eval = mean_squared_error(self.y_eval, self.eval_p)
+        R2_eval = r2_score(self.y_eval, self.eval_p)
+        
+        
+        return MSE_train, R2_train, MSE_test , R2_test, MSE_eval, R2_eval
+    
             
     def shuffleAndsplit(self, X, y):
         curr_seed= 0
