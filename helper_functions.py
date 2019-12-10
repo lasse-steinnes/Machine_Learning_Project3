@@ -33,7 +33,6 @@ def CV(X, y, folds = 10):
     return Xtrain, Xtest, ytrain, ytest
 
 class Data:
-    
     def importData(self, filepath):
         """
         Imports training data train.csv from filepath

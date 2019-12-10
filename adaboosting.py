@@ -10,122 +10,18 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 class AdaBoost:
     
-    def __init__(self, iterations, depth, X_train, y_train, X_test, y_test, X_eval , y_eval):
+    def __init__(self, iterations, depth, X_train, y_train, X_test, y_test, X_eval = None , y_eval = None):
         
         #X, y = importData()
         self.iterations = iterations
         self.depth = depth
         
         self.X_train, self.y_train, self.X_test, self.y_test = X_train, y_train, X_test, y_test #AdaBoost.shuffleAndsplit(self, X, y)
+        
         self.X_eval, self.y_eval = X_eval, y_eval
+            
         self.n = self.X_train.shape[0]
-    
-    def initiateBoost(self, loss_func):
-        '''
-        initiates the adaboost
-        
-        loss func:  - loss function is a string, 'square', 'linear' or 'exponential'.
-        '''
-        W = np.array([1 for i in range(0, self.n)]) # initialise the weights as 1/n
-        self.beta = [] #list of all betas
-        self.y_p = [] #list of all training prediction arrays 
-        self.test_p = np.array([0.0 for i in range(0,len(self.y_test))])
-        self.train_p = np.array([0.0 for i in range(0,len(self.y_train))])
-        self.trees = []
-        for i in range(0, self.iterations+1): 
-            # renormalise the weights
-            W_norm = W / np.sum(W)
-            
-            # fit a weak decision tree
-            reg_weak = tree.DecisionTreeRegressor(max_depth = self.depth)
-            
-            reg_weak.fit(self.X_train, self.y_train, sample_weight = W_norm)
-            
-            # predict on train and test
-            y_predict_train = reg_weak.predict(self.X_train)
-            self.y_p.append(y_predict_train)
-            y_predict_test = reg_weak.predict(self.X_test)
-            
-            # decide on loss function
-            if loss_func == 'linear':
-                loss = AdaBoost.linear(self, y_predict_train, self.y_train)
-            elif loss_func == 'square':
-                loss = AdaBoost.square(self, y_predict_train, self.y_train)
-            elif loss_func == 'exponential':
-                loss = AdaBoost.exponential(self, y_predict_train, self.y_train)
-            
-            #find weighted loss and update prediction
-            loss_ave = np.sum(loss * W_norm)
-            beta = loss_ave / (1-loss_ave)
-            self.beta.append(beta)
-            
-            self.test_p += beta* y_predict_test
-            self.train_p += beta* y_predict_train
-            
-            #breaking function - not well understood
-            if loss_ave > 0.5:
-                print ('breaking Adaboost')
-                break
-            
-            #update weights
-            W = W_norm * (beta**(1-loss))
-            self.trees.append(reg_weak)
-        #predict on evaluation data
-        for i in range(0,self.iterations+1):
-            eval_p = self.trees[i].predict(self.X_eval)
-            self.eval_p += self.beta[i] * eval_p
-        
-    def ensemble_eval(self, beta_stopping = False):
-        if beta_stopping == True:
-            max_iteration = AdaBoost.beta_eval(self)
-        else:
-            max_iteration = self.iterations
-            
-        ensemble_y = 0
-        for i in range(0, max_iteration):
-            weight = self.y_p[i] * self.beta[i]
-            ensemble_y += weight
-        
-        MSE_train = mean_squared_error(self.y_train, self.train_p)
-        MSE_test = mean_squared_error(self.y_test, self.test_p)
-        R2_train = r2_score(self.y_train, self.train_p)
-        R2_test = r2_score(self.y_test, self.test_p)
-        
-        MSE_eval = mean_squared_error(self.y_eval, self.eval_p)
-        R2_eval = r2_score(self.y_eval, self.eval_p)
-        
-        
-        return MSE_train, R2_train, MSE_test , R2_test, MSE_eval, R2_eval
-    
-            
-    def shuffleAndsplit(self, X, y):
-        curr_seed= 0
-        np.random.seed(curr_seed)
-        np.random.shuffle(X)
-        np.random.seed(curr_seed)
-        np.random.shuffle(y)
-        
-        X = X[0:1000] #algorithm testing with smaller samples than full data
-        y = y[0:1000]
-        
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1)
-        
-        return X_train, X_test, y_train, y_test
-
-    def tree_normal(self):
-        tree_reg= tree.DecisionTreeRegressor(max_depth = 3)
-        tree_reg.fit(self.X_train, self.y_train)
-        y_predict = tree_reg.predict(self.X_test)
-        y_train_predict = tree_reg.predict(self.X_train)
-        
-        #print("Train set R2 score is: {:.2f}".format(tree_reg.score(X_train,y_train)))
-        print("Test set R2 score is: {:.2f}".format(tree_reg.score(self.X_test, self.y_test)))
-        
-        mse_predict = MSE(self.y_test, y_predict)
-        print('Test set mse is: {:.2f}'.format(mse_predict))
-        print('The number of leaves in the decision tree is:',tree_reg.get_n_leaves())
-    
-    #loss functions for boost
+        #loss functions for boost
     def linear (self, y_predict, y):
         return np.absolute(y_predict - y) / np.sum(np.absolute(y_predict - y))
     
@@ -156,6 +52,117 @@ class AdaBoost:
                 break
             max_iter += 1
         return max_iter
+    
+    def initiateBoost(self, loss_func):
+        '''
+        initiates the adaboost
+        
+        loss func:  - loss function is a string, 'square', 'linear' or 'exponential'.
+        '''
+        W = np.array([1 for i in range(0, self.n)]) # initialise the weights as 1/n
+        self.beta = [] #list of all betas
+        self.y_p = [] #list of all training prediction arrays 
+        self.test_p = np.array([0.0 for i in range(0,len(self.y_test))])
+        self.train_p = np.array([0.0 for i in range(0,len(self.y_train))])
+        if type(self.X_eval) != type(None):
+            self.eval_p = np.array([0.0 for i in range(0,len(self.y_eval))])
+        self.trees = []
+        for i in range(0, self.iterations+1): 
+            # renormalise the weights
+            W_norm = W / np.sum(W)
+            
+            # fit a weak decision tree
+            reg_weak = tree.DecisionTreeRegressor(max_depth = self.depth)
+            
+            reg_weak.fit(self.X_train, self.y_train, sample_weight = W_norm)
+            
+            # predict on train and test
+            y_predict_train = reg_weak.predict(self.X_train)
+            self.y_p.append(y_predict_train)
+            y_predict_test = reg_weak.predict(self.X_test)
+            
+            # decide on loss function
+            if loss_func == 'linear':
+                loss = AdaBoost.linear(self, y_predict_train, self.y_train)
+            elif loss_func == 'square':
+                loss = AdaBoost.square(self, y_predict_train, self.y_train)
+            elif loss_func == 'exponential':
+                loss = AdaBoost.exponential(self, y_predict_train, self.y_train)
+            
+            #find weighted loss and update prediction
+            loss_ave = np.sum(loss * W_norm)
+            beta = loss_ave / (1-loss_ave)
+            self.beta.append(beta)
+            self.test_p += beta* y_predict_test
+            self.train_p += beta* y_predict_train
+            
+            #breaking function - not well understood
+            if loss_ave > 0.5:
+                print ('breaking Adaboost')
+                break
+            
+            #update weights
+            W = W_norm * (beta**(1-loss))
+            self.trees.append(reg_weak)
+            
+        #predict on evaluation data
+        if type(self.X_eval) != type(None):
+            for i in range(0,self.iterations+1):
+                self.eval_p += self.beta[i] * self.trees[i].predict(self.X_eval)
+               
+        
+    def ensemble_eval(self, beta_stopping = False):
+        if beta_stopping == True:
+            max_iteration = AdaBoost.beta_eval(self)
+        else:
+            max_iteration = self.iterations
+            
+        ensemble_y = 0
+        for i in range(0, max_iteration):
+            weight = self.y_p[i] * self.beta[i]
+            ensemble_y += weight
+        
+        MSE_train = mean_squared_error(self.y_train, self.train_p)
+        MSE_test = mean_squared_error(self.y_test, self.test_p)
+        R2_train = r2_score(self.y_train, self.train_p)
+        R2_test = r2_score(self.y_test, self.test_p)
+        
+        if type(self.X_eval) != type(None): 
+            MSE_eval = mean_squared_error(self.y_eval, self.eval_p)
+            R2_eval = r2_score(self.y_eval, self.eval_p)
+            return MSE_train, R2_train, MSE_test , R2_test, MSE_eval, R2_eval
+        
+        else:
+            return MSE_train, R2_train, MSE_test , R2_test
+            
+    def shuffleAndsplit(self, X, y):
+        curr_seed= 0
+        np.random.seed(curr_seed)
+        np.random.shuffle(X)
+        np.random.seed(curr_seed)
+        np.random.shuffle(y)
+        
+        X = X[0:1000] #algorithm testing with smaller samples than full data
+        y = y[0:1000]
+        
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.1)
+        
+        return X_train, X_test, y_train, y_test
+
+    def tree_normal(self):
+        tree_reg= tree.DecisionTreeRegressor(max_depth = 3)
+        tree_reg.fit(self.X_train, self.y_train)
+        y_predict = tree_reg.predict(self.X_test)
+        y_train_predict = tree_reg.predict(self.X_train)
+        
+        #print("Train set R2 score is: {:.2f}".format(tree_reg.score(X_train,y_train)))
+        print("Test set R2 score is: {:.2f}".format(tree_reg.score(self.X_test, self.y_test)))
+        
+        mse_predict = MSE(self.y_test, y_predict)
+        print('Test set mse is: {:.2f}'.format(mse_predict))
+        print('The number of leaves in the decision tree is:',tree_reg.get_n_leaves())
+    
+
     
 
             
