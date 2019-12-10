@@ -14,8 +14,8 @@ filep = Path("./Results/")
 
 def plot ():
     plt.figure()
-    plt.plot(ada.y_train, y_ensemble, ".", label="adaboost", linewidth=2)
-    plt.plot(ada.y_test, ada.test_p, '.', label='test adaboost')
+    plt.plot(y_train, y_ensemble, ".", label="adaboost", linewidth=2)
+    plt.plot(y_test, test_p, '.', label='test adaboost')
     plt.title("Boosted Decision Tree Regression")
     plt.xlabel("y training data")
     plt.ylabel("predicted")
@@ -27,7 +27,7 @@ def boostCV(X, y, ymax, iter_sch, depth, folds = 10):
     toi = pd.DataFrame(columns = ['MSE', 'R2', "data set", 'iter', "depth", "loss function" ]) #+ ["beta%i"%i for i in range(iter_sch[0])])
     Xtrain, Xtest, ytrain, ytest = CV(X,y, folds =folds)
    
-    for i in tqdm(0,range(1)):
+    for i in tqdm(range(folds)):
         for i,loss_func in enumerate(["linear", "square", "exponential"]):
             for itera in iter_sch:
                 for depth in depth_sch:
@@ -47,9 +47,10 @@ def boostCV(X, y, ymax, iter_sch, depth, folds = 10):
                     d = {"MSE": MSEeval, "R2":R2eval, "data set": "evaluation", "iter": itera, "depth": depth, "loss function": loss_func }
                     toi = toi.append(d, ignore_index=True)
                     
-                    
     return toi
 
+
+print ("hello")
 X, y, ymax = DataWorkflow()
 iter_sch = [100, 50, 20]
 depth_sch = [3,2,1]
