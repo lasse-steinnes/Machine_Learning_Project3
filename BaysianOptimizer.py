@@ -14,7 +14,7 @@ from scipy.stats import norm
 from tqdm import tqdm
 
 class BaysianMaximization:
-    def __init__(self, model, search_space_categorical, search_space_interval, search_space_complex = None, gp_kargs=None ):
+    def __init__(self, model, search_space_categorical, search_space_interval, search_space_complex = None, gp_kargs=None, verbose_level=0 ):
         """
         This class maximises a model score function with respect to the hyperparameters of a given model and training data.
         Initialize all necessary search space related operations and the Gaussian Process model GP
@@ -30,12 +30,18 @@ class BaysianMaximization:
 
             search_space_interval:      dict with search_dim_name : (interval_start, interval_stop)
                                         draw random uniform samples from [interval_start, interval_stop)
+            
+
+        Kargs:
             search_space_complex:       dict with more complex sampling search_dim_name : (func , **kargs)
                                             func must take arg num_sample and return model kargs_value, scalar_map_value 
 
-        Kargs:
             gp_kargs:                   dict with kargs to sklearn GaussianProcessRegressor
                                         default None
+
+            verbose_level:              0 -> no output except bars
+                                        1 -> final stats
+                                        2 -> all
         """
         self.model = model
         self.categorical = search_space_categorical
@@ -51,6 +57,7 @@ class BaysianMaximization:
             self.gp_estimator = GaussianProcessRegressor()
         #store for hyperparameters and odel score
         self.model_score = []
+        self.verbose = verbose_level
 
     def SetData(self, data, target, test_fraction = 0.2, eval_fraction = 0.1):
         """
@@ -92,7 +99,8 @@ class BaysianMaximization:
         max_ind = np.argmax(self.model_score)
         self.maximal_score = self.model_score[max_ind] 
         self.best_model_kargs = BaysianMaximization.JoinDicts(self, temp_par[max_ind], 0) 
-        print("GP R2: %.4f"%self.gp_estimator.score(self.hyperpar, self.model_score))
+        if self.verbose >0:
+            print("GP R2: %.4f"%self.gp_estimator.score(self.hyperpar, self.model_score))
 
     def Predict(self, params):
         """
@@ -160,7 +168,8 @@ class BaysianMaximization:
         expected_improvment = Z*norm.cdf(Z/(std + 1E-9),) + std*norm.pdf(Z/(std+1E-9))
 
         max_ind = np.argmax(expected_improvment)
-        print("Expected Improvment: %.4f"% expected_improvment[max_ind])
+        if self.verbose>1:
+            print("Expected Improvment: %.4f"% expected_improvment[max_ind])
 
         self.hyperpar = np.vstack([self.hyperpar, try_map[max_ind]])
         
@@ -178,12 +187,14 @@ class BaysianMaximization:
             if improv > 0:
                 self.maximal_score = self.model_score[-1]
                 self.best_model_kargs = model_kargs
-            print("Acutual Improvment: %.4f"% improv )
+            if self.verbose >1:
+                print("Acutual Improvment: %.4f"% improv )
             pred, _ = BaysianMaximization.Predict(self, self.hyperpar)
             self.maximal_predicted_score= np.max(pred)
-        print("GP R2: %.4f"%self.gp_estimator.score(self.hyperpar, self.model_score))
-        print("Best Model Score on test: %.4f" %self.maximal_score)
-        print("Best Model Score on evaluation: %.4f" %self.model(*self.eval, **self.best_model_kargs))
+        if self.verbose >0:
+            print("GP R2: %.4f"%self.gp_estimator.score(self.hyperpar, self.model_score))
+            print("Best Model Score on test: %.4f" %self.maximal_score)
+            print("Best Model Score on evaluation: %.4f" %self.model(*self.eval, **self.best_model_kargs))
 
     def JoinDicts(self, dict_to_join, max_ind):
         ret= { name: value[max_ind] for name, value in dict_to_join["sequential"].items()}

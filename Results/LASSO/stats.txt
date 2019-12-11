@@ -1,0 +1,40 @@
+Best model:
+train: 
+MSE: 0.009063954
+R2: 0.735890106
+unc. Tc: 17.612887972
+lambda: 0.000001000
+
+test: 
+MSE: 0.008898931
+R2: 0.741179227
+unc. Tc: 17.451817213
+lambda: 0.000001000
+
+eval: 
+MSE: 0.008882423
+R2: 0.737292596
+unc. Tc: 17.435622204
+lambda: 0.000001000
+
+Average model:
+train CV reults: 
+MSE: 0.009004869 +- 0.000065624
+R2: 0.737192764 +- 0.001749691
+unc. Tc: 17.555276845 +- 0.064014484
+
+test CV reults: 
+MSE: 0.009040267 +- 0.000130613
+R2: 0.736781709 +- 0.004174368
+unc. Tc: 17.589423058 +- 0.127013615
+
+eval CV reults: 
+MSE: 0.009083518 +- 0.000418895
+R2: 0.734910504 +- 0.010830237
+unc. Tc: 17.627472553 +- 0.404730047
+
+
+Most importand parameters based on best model:
+1. importand parameter: wtd_std_fie
+2. importand parameter: mean_fie
+3. importand parameter: std_FusionHeat

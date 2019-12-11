@@ -1,0 +1,8 @@
+200 inital guesses, 200 updates each with 1000 suggestions
+GP R2 befor 50 updates: 0.8969
+GP R2 after 50 udates:  0.9502
+Best Model Score on test: 1.4353
+Best Model Score on evaluation: 1.0761
+found best  (0.2195349098694288, 0.17433549937645365)
+Actual best (0.2064128256513026, 0.20841683366733466)
+
