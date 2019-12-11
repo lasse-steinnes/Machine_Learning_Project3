@@ -36,7 +36,7 @@ depth = 10
 regr_1 = tree.DecisionTreeRegressor(max_depth=depth)
 
 regr_2 = AdaBoostRegressor(tree.DecisionTreeRegressor(max_depth=depth),
-                          n_estimators=81, random_state=rng)
+                          n_estimators=150, random_state=rng)
 
 regr_1.fit(X_train, y_train)
 regr_2.fit(X_train, y_train)

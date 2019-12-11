@@ -1,13 +1,14 @@
 Best model:
 train: 
-MSE: 0.067738921
-R2: -0.971180092
-iter: 150
+MSE: 83.544108031
+R2: 0.929191020
+iter: 15
 depth: 10
 loss function: square
-test: 
-MSE: 0.067758210
-R2: -0.972080551
-iter: 150
+ymax is: 137.40000test: 
+MSE: 128.518527198
+R2: 0.889300879
+iter: 15
 depth: 10
 loss function: square
+ymax is: 137.40000

@@ -52,10 +52,7 @@ def boostCV(X, y, ymax, iter_sch, depth_sch, folds = 10):
                     
     return toi
 
-def boost(X, y , ymax, iter_sch, depth_sch, folds, evaluationSet = False):
-    best_trees = []
-    best_betas = []
-    best_mse = 1.0
+def boost(X, y , ymax, iter_sch, depth_sch, functions, folds, evaluationSet = False):
     
     toi = pd.DataFrame(columns = ['MSE', 'R2', "data set", 'iter', "depth", "loss function"])
     
@@ -71,23 +68,24 @@ def boost(X, y , ymax, iter_sch, depth_sch, folds, evaluationSet = False):
     for i in tqdm(range(1)):
         for iteration in tqdm(iter_sch):
             for depth in tqdm(depth_sch):
-                for j,loss_func in enumerate(["square"]):#,"linear", "exponential"]):
-            
-                    
+                for loss_func in functions: 
                     ada = AdaBoost(iteration, depth, Xtrain[i], ytrain[i], Xtest[i], ytest[i])
                     ada.training(loss_func)
-                    MSEtrain, R2train, MSEtest, R2test, best_mse, best_trees, best_betas = ada.evaluate(best_mse, best_trees, best_betas, betaStopping = False)
+                    train_predict, train_MSE, train_R2 = ada.evaluate(Xtrain[i],ytrain[i])
+                    test_predict, test_MSE, test_R2 = ada.evaluate(Xtest[i], ytest[i])
                     
-                    d = {"MSE": MSEtrain, "data set": "train", "R2":R2train, "iter": iteration, "depth": depth, "loss function": loss_func }
+                    d = {"MSE": train_MSE*ymax**2, "R2": train_R2, "iter": iteration, "depth": depth, "loss function": loss_func, "data set": "train"}
                     #d.update({"beta%i"%k:ada.beta[k] for k in range(itera)})
                     toi = toi.append(d, ignore_index=True)
                     
-                    d = {"MSE": MSEtest, "R2":R2test, "data set": "test", "iter": iteration, "depth": depth, "loss function": loss_func }
+                    d = {"MSE": test_MSE*ymax**2, "R2": test_R2, "iter": iteration, "depth": depth, "loss function": loss_func, "data set": "test"}
                     toi = toi.append(d, ignore_index=True)
     
-    p , MSE, R2 = final_predict(X_eval, y_eval, best_trees, best_betas)
+    eval_predict, eval_MSE, eval_R2 = ada.evaluate(X_eval, y_eval)
+    d = {"MSE": eval_MSE*ymax**2, "R2": eval_R2, "iter": iteration, "depth": depth, "loss function": loss_func, "data set": "evaluation"}
+    toi = toi.append(d, ignore_index=True)
                 
-    return toi, best_trees, best_betas, p, y_eval, MSE, R2
+    return toi, y_eval, eval_predict, eval_MSE*ymax**2, eval_R2
 
 def final_predict(X,y, best_trees, best_betas):
     p = np.zeros(len(y))
@@ -162,7 +160,7 @@ def Stats(toi, filepath, plot_par = False, features =81, skip_eval=False, bayse 
 
     return tabel["test"][inds3]
 
-def Stats2(toi, filepath, skip_eval = True):
+def Stats2(toi, filepath, ymax, skip_eval = True):
     """
     find optimal model by looking at toi, evaluate CV performance
     returns optimal parameters
@@ -193,15 +191,18 @@ def Stats2(toi, filepath, skip_eval = True):
             f.write(name + ': %s' %tabel[data_set][name])
             
             f.write("\n")
+            
+        f.write("ymax is: %.5f" %ymax)
     f.close()
     
-def pred_vs_actual(y,ymax, p, filepath):
+def pred_vs_actual(y,ymax, p, MSE, R2, filepath):
     
     plt.figure(figsize=(10,10))
-    plt.scatter(y*ymax, p*ymax**2)
+    plt.scatter(y*ymax, p*ymax , label="adaboost \n MSE: %.3f, R2: %.2f"%(MSE, R2))
     plt.plot([0,ymax],[0,ymax], linestyle ='--')
     plt.xlabel('act. T$_c$ in K', fontsize =32)
     plt.ylabel("pred. T$_c$ in K ", fontsize= 32)
+    plt.legend()
     #plt.xlim(0, ymax)
     #plt.ylim(0, ymax)
     plt.tick_params(size =24, labelsize=26)
@@ -211,21 +212,15 @@ def pred_vs_actual(y,ymax, p, filepath):
 def main():
     filep = Path("./Results/adaboost/")
     X, y, ymax = DataWorkflow()
-    iter_sch = [150]
-    depth_sch = [15]
-    toi, best_trees, best_betas, p_eval, y_eval, MSE, R2 = boost(X, y, ymax, iter_sch, 
-                                                                 depth_sch, folds = 5, evaluationSet = True)
+    iter_sch = [15]
+    depth_sch = [10]
+    functions = ["square"]#, "linear", "exponential"]
+    toi, y_eval, eval_predict, MSE, R2  = boost(X, y, ymax, iter_sch, depth_sch, functions, folds = 5, evaluationSet = True)
     toi.to_csv(filep/'toi.csv')
-    pred_vs_actual(y_eval, ymax, p_eval, filep/'eval')
-    print ('evaluation MSE and R2: ', MSE, R2)
+    pred_vs_actual(y_eval, ymax, eval_predict, MSE, R2, filep/'eval')
     
-    #predict on whole dataset
-    p , MSE, R2 = final_predict(X, y, best_trees, best_betas)
-    pred_vs_actual(y, ymax, p, filep)
-    print ('whole dataset MSE and R2: ', MSE, R2)
-
-
+main()
 filep = Path("./Results/adaboost/")
 toi = pd.read_csv(filep/'toi.csv')
 #ind3 = Stats(toi, filep, plot_par = False, skip_eval = True)
-Stats2(toi, filep, skip_eval = True)
+Stats2(toi, filep, ymax, skip_eval = True)
