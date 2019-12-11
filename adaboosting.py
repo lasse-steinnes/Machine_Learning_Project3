@@ -212,19 +212,7 @@ class AdaBoost:
         
         return X_train, X_test, y_train, y_test
 
-    def tree_normal(self):
-        tree_reg= tree.DecisionTreeRegressor(max_depth = 3)
-        tree_reg.fit(self.X_train, self.y_train)
-        y_predict = tree_reg.predict(self.X_test)
-        y_train_predict = tree_reg.predict(self.X_train)
-        
-        #print("Train set R2 score is: {:.2f}".format(tree_reg.score(X_train,y_train)))
-        print("Test set R2 score is: {:.2f}".format(tree_reg.score(self.X_test, self.y_test)))
-        
-        mse_predict = MSE(self.y_test, y_predict)
-        print('Test set mse is: {:.2f}'.format(mse_predict))
-        print('The number of leaves in the decision tree is:',tree_reg.get_n_leaves())
-    
+
 
     
 
