@@ -9,6 +9,9 @@ import pandas as pd
 from helper_functions import DataWorkflow, CV
 from tqdm import tqdm
 from pathlib import Path
+from sklearn.metrics import mean_squared_error, r2_score
+import numpy as np
+from sklearn.model_selection import train_test_split
 
 def plot ():
     plt.figure()
@@ -20,7 +23,7 @@ def plot ():
     plt.legend()
     plt.show()
 
-def boostCV(X, y, ymax, iter_sch, depth, folds = 10):
+def boostCV(X, y, ymax, iter_sch, depth_sch, folds = 10):
     
     toi = pd.DataFrame(columns = ['MSE', 'R2', "data set", 'iter', "depth", "loss function" ])
     
@@ -49,33 +52,151 @@ def boostCV(X, y, ymax, iter_sch, depth, folds = 10):
                     
     return toi
 
-def boost(X, y , ymax, iter_sch, depth, folds):
+def boost(X, y , ymax, iter_sch, depth_sch, folds, evaluationSet = False):
+    best_trees = []
+    best_betas = []
+    best_mse = 1.0
     
     toi = pd.DataFrame(columns = ['MSE', 'R2', "data set", 'iter', "depth", "loss function"])
     
+    if evaluationSet == True:
+        np.random.seed(2019)
+        np.random.shuffle(X)
+        np.random.seed(2019)
+        np.random.shuffle(y)
+        X, X_eval, y, y_eval = train_test_split(X, y, test_size =0.1)
+        
     Xtrain, Xtest, ytrain, ytest = CV(X,y, folds =folds)
 
     for i in tqdm(range(1)):
-        for j,loss_func in enumerate(["square"]):
-            for itera in iter_sch:
-                for depth in depth_sch:
+        for iteration in tqdm(iter_sch):
+            for depth in tqdm(depth_sch):
+                for j,loss_func in enumerate(["square"]):#,"linear", "exponential"]):
+            
                     
-                    ada = AdaBoost(itera, depth, Xtrain[i], ytrain[i], Xtest[i], ytest[i])
-                    ada.initiateBoost(loss_func)
-                    MSEtrain, R2train, MSEtest, R2test = ada.ensemble_eval(False)
+                    ada = AdaBoost(iteration, depth, Xtrain[i], ytrain[i], Xtest[i], ytest[i])
+                    ada.training(loss_func)
+                    MSEtrain, R2train, MSEtest, R2test, best_mse, best_trees, best_betas = ada.evaluate(best_mse, best_trees, best_betas, betaStopping = False)
                     
-                    d = {"MSE": MSEtrain, "data set": "train", "R2":R2train, "iter": itera, "depth": depth, "loss function": loss_func }
+                    d = {"MSE": MSEtrain, "data set": "train", "R2":R2train, "iter": iteration, "depth": depth, "loss function": loss_func }
                     #d.update({"beta%i"%k:ada.beta[k] for k in range(itera)})
                     toi = toi.append(d, ignore_index=True)
                     
-                    d = {"MSE": MSEtest, "R2":R2test, "data set": "test", "iter": itera, "depth": depth, "loss function": loss_func }
+                    d = {"MSE": MSEtest, "R2":R2test, "data set": "test", "iter": iteration, "depth": depth, "loss function": loss_func }
                     toi = toi.append(d, ignore_index=True)
-                    
-    return toi, ada.y_train, ada.train_p
-
-def pred_vs_actual(y,ymax, best_eval, filepath):
     
-    p = best_eval
+    p , MSE, R2 = final_predict(X_eval, y_eval, best_trees, best_betas)
+                
+    return toi, best_trees, best_betas, p, y_eval, MSE, R2
+
+def final_predict(X,y, best_trees, best_betas):
+    p = np.zeros(len(y))
+    for k in range(0,len(best_betas)):
+        p += best_betas[k] * best_trees[k].predict(X)
+    MSE = mean_squared_error(y, p)
+    R2 = r2_score(y, p)
+     
+    return p, MSE, R2
+
+def Stats(toi, filepath, plot_par = False, features =81, skip_eval=False, bayse =False):
+    """
+    find optimal model by looking at toi, evaluate CV performance
+    returns optimal parameters
+    """
+    f = open(filepath/"stats.txt",'w')
+    #find best row based on test
+    idx = toi[toi["data set"]=="test"]["MSE"].idxmin()
+    tabel = {"test": toi.iloc[idx]}  
+    tabel.update({ "train": toi.iloc[idx-1]}) 
+    if not skip_eval: 
+        tabel.update({"eval": toi.iloc[idx +1]})
+    f.write('Best model:\n')
+    for data_set in ["train","test", "eval"]: 
+        if skip_eval & (data_set =='eval'):
+            break
+        f.write(data_set +': \n')
+        
+        for name in ["MSE", "R2"]:
+            
+            f.write(name + ': %.9f\n'%tabel[data_set][name])
+            
+        #for name in ["iter", "depth", "lossfunction"]:
+            
+            #f.write(name + ': %s\n'%tabel[data_set][name])
+            
+        f.write("\n")
+    #model variablity at best lam    
+    if not bayse:
+        toi = toi[toi["depth"]==tabel["test"]["depth"]]
+
+    av = toi.groupby("data set").agg(["mean","std"])
+
+    f.write('Average model:\n')
+    for data_set in ["train","test", "eval"]: 
+        if skip_eval & (data_set =='eval'):
+            break
+        f.write(data_set +' CV reults: \n')
+        for name in ["MSE", "R2"]:
+            
+            f.write(name + ': %.9f +- %.9f\n'%(av.loc[data_set][name, "mean"],av.loc[data_set][name, "std"]))
+            
+        f.write("\n")
+    f.close()
+
+    inds3 = ["par%i"%i for i in range(features)]
+    if plot_par:
+        plt.figure(figsize =(10,10))
+        inds = [("par%i"%i, 'mean') for i in range(features)]
+        inds2 = [("par%i"%i, 'std') for i in range(features)]
+
+        #95% confidence interval
+        plt.errorbar(np.arange(features),av.loc["test"][inds], yerr=1.96*av.loc["test"][inds2], linestyle ='', marker='o', color ='tab:orange', label = r'95% conf. interv.')
+        plt.plot(np.arange(features), tabel["test"][inds3], linestyle ='', marker ='x', color = 'tab:green', label ='Best param.')
+        plt.legend(loc='best', fontsize = 28)
+        plt.ylabel('par. value', fontsize =32)
+        plt.xlabel("par. number", fontsize= 32)
+        plt.xlim(-0.5, features+0.5)
+        plt.tick_params(size =24, labelsize=26)
+        plt.tight_layout()
+        plt.savefig(filepath/'params.pdf')
+
+    return tabel["test"][inds3]
+
+def Stats2(toi, filepath, skip_eval = True):
+    """
+    find optimal model by looking at toi, evaluate CV performance
+    returns optimal parameters
+    """
+    f = open(filepath/"stats2.txt",'w')
+    #find best row based on test
+    toi = toi.groupby(['iter', "depth", "loss function", "data set"], as_index = False).mean()
+    
+    toi.to_csv(filepath/'grouped.csv')
+    
+    idx = toi[toi["data set"]=="test"]["MSE"].idxmin()
+    tabel = {"test": toi.iloc[idx]}  
+    tabel.update({ "train": toi.iloc[idx+1]}) 
+    if not skip_eval: 
+        tabel.update({"eval": toi.iloc[idx +1]})
+    f.write('Best model:\n')
+    for data_set in ["train","test", "eval"]: 
+        if skip_eval & (data_set =='eval'):
+            break
+        f.write(data_set +': \n')
+        
+        for name in ["MSE", "R2"]:
+            
+            f.write(name + ': %.9f\n'%tabel[data_set][name])
+            
+        for name in ["iter", "depth", "loss function"]:
+            
+            f.write(name + ': %s' %tabel[data_set][name])
+            
+            f.write("\n")
+    f.close()
+    
+def pred_vs_actual(y,ymax, p, filepath):
+    
     plt.figure(figsize=(10,10))
     plt.scatter(y*ymax, p*ymax**2)
     plt.plot([0,ymax],[0,ymax], linestyle ='--')
@@ -87,19 +208,24 @@ def pred_vs_actual(y,ymax, best_eval, filepath):
     plt.tight_layout()
     plt.savefig(filepath/'pred_vs_act.pdf')
   
-filep = Path("./Results/adaboost/")
-X, y, ymax = DataWorkflow()
-iter_sch = [100]
-depth_sch = [1]
-toi, y_test, test_p = boost(X, y, ymax, iter_sch, depth_sch, folds = 5)
-toi.to_csv(filep/'toi.csv')
-pred_vs_actual(y_test, ymax, test_p, filep)
-
-'''  
-X, y, ymax = DataWorkflow()
-iter_sch = [100, 50, 20]
-depth_sch = [3,2,1]
+def main():
+    filep = Path("./Results/adaboost/")
+    X, y, ymax = DataWorkflow()
+    iter_sch = [150]
+    depth_sch = [15]
+    toi, best_trees, best_betas, p_eval, y_eval, MSE, R2 = boost(X, y, ymax, iter_sch, 
+                                                                 depth_sch, folds = 5, evaluationSet = True)
+    toi.to_csv(filep/'toi.csv')
+    pred_vs_actual(y_eval, ymax, p_eval, filep/'eval')
+    print ('evaluation MSE and R2: ', MSE, R2)
     
-toi = boostCV(X, y, ymax, iter_sch, depth_sch, folds = 10)
-toi.to_csv(filep/'adaboost'/'toi.csv')
-'''
+    #predict on whole dataset
+    p , MSE, R2 = final_predict(X, y, best_trees, best_betas)
+    pred_vs_actual(y, ymax, p, filep)
+    print ('whole dataset MSE and R2: ', MSE, R2)
+
+
+filep = Path("./Results/adaboost/")
+toi = pd.read_csv(filep/'toi.csv')
+#ind3 = Stats(toi, filep, plot_par = False, skip_eval = True)
+Stats2(toi, filep, skip_eval = True)

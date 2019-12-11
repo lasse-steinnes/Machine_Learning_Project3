@@ -1,0 +1,13 @@
+Best model:
+train: 
+MSE: 0.067738921
+R2: -0.971180092
+iter: 150
+depth: 10
+loss function: square
+test: 
+MSE: 0.067758210
+R2: -0.972080551
+iter: 150
+depth: 10
+loss function: square
