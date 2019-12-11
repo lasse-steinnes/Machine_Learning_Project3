@@ -84,7 +84,7 @@ def boost(X, y , ymax, iter_sch, depth_sch, functions, folds, evaluationSet = Fa
                 
     return toi, y_eval, eval_predict, eval_MSE*ymax**2, eval_R2
 
-def Stats2(toi, filepath, ymax, skip_eval = True):
+def Stats(toi, filepath, ymax, skip_eval = True):
     """
     find optimal model by looking at toi, evaluate CV performance
     returns optimal parameters
@@ -93,11 +93,11 @@ def Stats2(toi, filepath, ymax, skip_eval = True):
     #find best row based on test
     toi = toi.groupby(['iter', "depth", "loss function", "data set"], as_index = False).mean()
     
-    toi.to_csv(filepath/'grouped.csv')
+    toi.to_csv(filepath/'ave_toi.csv')
     
     idx = toi[toi["data set"]=="test"]["MSE"].idxmin()
     tabel = {"test": toi.iloc[idx]}  
-    tabel.update({ "train": toi.iloc[idx+1]}) 
+    tabel.update({ "train": toi.iloc[idx-1]}) 
     if not skip_eval: 
         tabel.update({"eval": toi.iloc[idx +1]})
     f.write('Best model:\n')
@@ -147,4 +147,4 @@ toi.to_csv(filep/'toi.csv')
 pred_vs_actual(y_eval, ymax, eval_predict, MSE, R2, filep/'eval')
 
 #store best parameters in txt file    
-Stats2(toi, filep, ymax, skip_eval = True)
+Stats(toi, filep, ymax, skip_eval = True)
