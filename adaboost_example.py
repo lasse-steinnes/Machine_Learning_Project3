@@ -14,7 +14,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-def boost(X, y , ymax, iter_sch, depth_sch, functions, folds, evaluationSet = False):
+def boost(X, y , ymax, iter_sch, depth_sch, functions, filepath, folds, evaluationSet = False):
     '''
     A function to run adaboost with different hyper-parameters and
     to perform kfold cross-validation. 
@@ -53,6 +53,9 @@ def boost(X, y , ymax, iter_sch, depth_sch, functions, folds, evaluationSet = Fa
     '''
     toi = pd.DataFrame(columns = ['MSE', 'R2', "data set", 'iter', "depth", "loss function"])
     
+    
+    best_ave_mse = 1.0
+    
     if evaluationSet == True:
         np.random.seed(2019)
         np.random.shuffle(X)
@@ -62,24 +65,43 @@ def boost(X, y , ymax, iter_sch, depth_sch, functions, folds, evaluationSet = Fa
         
     Xtrain, Xtest, ytrain, ytest = CV(X,y, folds =folds)
 
-    for i in tqdm(range(1)):
-        for iteration in tqdm(iter_sch):
-            for depth in tqdm(depth_sch):
-                for loss_func in functions: 
-                    ada = AdaBoost(iteration, depth, Xtrain[i], ytrain[i], Xtest[i], ytest[i])
-                    ada.training(loss_func)
-                    train_predict, train_MSE, train_R2 = ada.evaluate(Xtrain[i],ytrain[i])
-                    test_predict, test_MSE, test_R2 = ada.evaluate(Xtest[i], ytest[i])
+    
+    for iteration in tqdm(iter_sch):
+        for depth in depth_sch:
+            for loss_func in functions:
+                temp = pd.DataFrame(columns = ['MSE', 'R2', "data set", 'iter', "depth", "loss function"])
+                ave_mse = 0.0
+                best_mse = 1.0
+                best_iteration = []
+                best_depth = []
+                best_function = []
+                best_params = []
+                for i in tqdm(range(folds)): 
+                    ada = AdaBoost(iteration, depth, loss_func , Xtrain[i], ytrain[i], Xtest[i], ytest[i])
+                    train_MSE, train_R2, test_MSE, test_R2, best_mse, best_iteration, best_depth, best_function, best_params = ada.main(best_mse, best_iteration, best_depth, best_function, best_params)
                     
                     d = {"MSE": train_MSE*ymax**2, "R2": train_R2, "iter": iteration, "depth": depth, "loss function": loss_func, "data set": "train"}
                     #d.update({"beta%i"%k:ada.beta[k] for k in range(itera)})
-                    toi = toi.append(d, ignore_index=True)
+                    temp = temp.append(d, ignore_index=True)
                     
                     d = {"MSE": test_MSE*ymax**2, "R2": test_R2, "iter": iteration, "depth": depth, "loss function": loss_func, "data set": "test"}
-                    toi = toi.append(d, ignore_index=True)
+                    temp = temp.append(d, ignore_index=True)
+                
+                    ave_mse += test_MSE / folds
+                if ave_mse < best_ave_mse:
+                    f_params = best_params
+                    f_iter = best_iteration
+                    f_depth = best_depth
+                    f_function = best_function
+                ave_temp = temp.groupby(['iter', "depth", "loss function", "data set"], as_index = False).mean()
+                toi = toi.append(ave_temp)
+            
+    toi.to_csv(filepath/'toi_prior_eval.csv')
+    best_trees, best_iteration_weight = zip(*f_params)
+    best_iteration_weight = np.array(best_iteration_weight)
+    eval_predict, eval_MSE, eval_R2 = ada.evaluate(X_eval, y_eval, best_trees, best_iteration_weight)
     
-    eval_predict, eval_MSE, eval_R2 = ada.evaluate(X_eval, y_eval)
-    d = {"MSE": eval_MSE*ymax**2, "R2": eval_R2, "iter": iteration, "depth": depth, "loss function": loss_func, "data set": "evaluation"}
+    d = {"MSE": eval_MSE*ymax**2, "R2": eval_R2, "iter": f_iter, "depth": f_depth, "loss function": f_function, "data set": "evaluation"}
     toi = toi.append(d, ignore_index=True)
                 
     return toi, y_eval, eval_predict, eval_MSE*ymax**2, eval_R2
@@ -90,16 +112,12 @@ def Stats(toi, filepath, ymax, skip_eval = True):
     returns optimal parameters
     """
     f = open(filepath/"stats2.txt",'w')
-    #find best row based on test
-    toi = toi.groupby(['iter', "depth", "loss function", "data set"], as_index = False).mean()
-    
-    toi.to_csv(filepath/'ave_toi.csv')
     
     idx = toi[toi["data set"]=="test"]["MSE"].idxmin()
     tabel = {"test": toi.iloc[idx]}  
-    tabel.update({ "train": toi.iloc[idx-1]}) 
+    tabel.update({ "train": toi.iloc[idx+1]}) 
     if not skip_eval: 
-        tabel.update({"eval": toi.iloc[idx +1]})
+        tabel.update({"eval": toi.iloc[idx+2]})
     f.write('Best model:\n')
     for data_set in ["train","test", "eval"]: 
         if skip_eval & (data_set =='eval'):
@@ -116,7 +134,8 @@ def Stats(toi, filepath, ymax, skip_eval = True):
             
             f.write("\n")
             
-        f.write("ymax is: %.5f" %ymax)
+    f.write("ymax is: %.5f" %ymax)
+    f.write("\n")
     f.close()
     
 def pred_vs_actual(y,ymax, p, MSE, R2, filepath):
@@ -139,12 +158,12 @@ def pred_vs_actual(y,ymax, p, MSE, R2, filepath):
 
 filep = Path("./Results/adaboost/")
 X, y, ymax = DataWorkflow()
-iter_sch = [20,50,100]
-depth_sch = [1,2,3,5,10,20]
-functions = ["square", "linear", "exponential"]
-toi, y_eval, eval_predict, MSE, R2  = boost(X, y, ymax, iter_sch, depth_sch, functions, folds = 10, evaluationSet = True)
+iter_sch = [50]
+depth_sch = [15,20]
+functions = ["exponential"]            # ["square", "linear", "exponential"]
+toi, y_eval, eval_predict, MSE, R2  = boost(X, y, ymax, iter_sch, depth_sch, functions, filep, folds = 10, evaluationSet = True)
 toi.to_csv(filep/'toi.csv')
-pred_vs_actual(y_eval, ymax, eval_predict, MSE, R2, filep/'eval')
+pred_vs_actual(y_eval, ymax, eval_predict, MSE, R2, filep)
 
 #store best parameters in txt file    
 Stats(toi, filep, ymax, skip_eval = True)
