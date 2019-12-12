@@ -5,6 +5,7 @@ This is a github repository with various models (SVM, linear regression, adaboos
 
 Folders:
   Data: contains the files from the Kaggle page as well as the data which scraped from the same sources as the paper.
+  
   Results: contains the csv files and figures from the different methods: SVM, Adaboost, Linear Regression, XGBoost
   
 Files:
