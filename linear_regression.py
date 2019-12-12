@@ -11,6 +11,19 @@ from sklearn.metrics import mean_squared_error
 from pathlib import Path
 
 def GridCV(X,y,Xtest, ytest, lam_path, folds, toi, fnum, reg, reg_type):
+    """
+    grid search 
+    using in outer CV
+    X, Xtest shaped (samples, features)
+    y, ytest shaped (samples,)
+    lam_path lambdas to test Ridge and LASSO (list)
+    folds number of CV folds on X, y -> Xtest ytest becomes evaluation data
+    toi tabe of information to append results to
+    fnum fit number for toi
+    reg instance of Regression class
+    reg_type regression type, str either 'LASSO' or 'Ridge'
+    """
+
     features = X.shape[1]
     for lam in lam_path:
                 Xinner_train, Xinner_test, yinner_train, yinner_test = CV(X,y, folds =folds)
@@ -37,6 +50,19 @@ def GridCV(X,y,Xtest, ytest, lam_path, folds, toi, fnum, reg, reg_type):
     return toi, fnum
 
 def BayseCV(X,y, Xtest,ytest,lam_range, folds, toi, fnum, reg, reg_type, bootstraps=10):
+    """
+    Bayesian optimization search 
+    using in outer CV
+    X, Xtest shaped (samples, features)
+    y, ytest shaped (samples,)
+    lam_range touple of lower and upper lambda
+    folds number of CV folds on X, y -> Xtest ytest becomes evaluation data
+    toi tabe of information to append results to
+    fnum fit number for toi
+    reg instance of Regression class
+    reg_type regression type, str either 'LASSO' or 'Ridge'
+    bootstraps number of bootstraps to perform for each inner fold
+    """
     features = X.shape[1]
     Xinner_train, Xinner_test, yinner_train, yinner_test = CV(X,y, folds =folds)
 
@@ -178,7 +204,9 @@ def Stats(toi, filepath, plot_par = False, features =81, skip_eval=False, bayse 
     return tabel["test"][inds3]
 
 def perd_vs_actual(X,y,ymax, weights, filepath):
-    
+    """
+    plot of predicted vs actual Tc
+    """
     p = np.dot(X, weights)
     plt.figure(figsize=(10,10))
     plt.scatter(y*ymax, p*ymax)
