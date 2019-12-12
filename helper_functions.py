@@ -10,6 +10,9 @@ from pathlib import Path
 from methods import Regression
 
 def DataWorkflow(file_path =Path("./Data")):
+    """
+    loading data, extract X,y and randomize data
+    """
     data = Regression()
     data.importData(file_path)
     data.scale()
@@ -24,6 +27,7 @@ def CV(X, y, folds = 10):
     """
     X is shape (samples,features)
     y is shapes (samples,)
+    returns list of folds for training and test samples
     """
     Xtest = np.array_split(X, folds, axis = 0)
     ytest = np.array_split(y, folds, axis = 0)
