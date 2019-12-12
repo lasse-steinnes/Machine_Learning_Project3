@@ -10,6 +10,7 @@ from sklearn import tree
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, r2_score
+from pathlib import Path
 
 def shuffleAndsplit( X, y):
     curr_seed= 0
@@ -32,11 +33,11 @@ X_train, X_test, y_train, y_test = shuffleAndsplit(X, y)
 rng = np.random.RandomState(1)
 
 # Fit regression model
-depth = 10
+depth = 20
 regr_1 = tree.DecisionTreeRegressor(max_depth=depth)
 
 regr_2 = AdaBoostRegressor(tree.DecisionTreeRegressor(max_depth=depth),
-                          n_estimators=150, random_state=rng)
+                          n_estimators=50, random_state=rng, loss = 'linear')
 
 regr_1.fit(X_train, y_train)
 regr_2.fit(X_train, y_train)
@@ -52,15 +53,22 @@ r22 = r2_score(y_test, y_2)
 
 print( X_test.shape)
 print( y_test.shape)
+
+  
+plt.fontsize = 32
+filep = Path("./Results/adaboost/")
 # Plot the results
-plt.figure()
+plt.figure(figsize=(10,10))
 ymax = y_test[np.argmax(y_test)]
 plt.plot([0,ymax],[0,ymax], linestyle ='--')
 #plt.scatter(X_train, y_train, c="k", label="training samples")
-plt.plot(y_test, y_1, ".", label="decision tree \n MSE: %.2f, R2: %.2f"% (mse1,r21), linewidth=2)
-plt.plot(y_test, y_2, "b.", label="adaboost \n MSE: %.2f, R2: %.2f"%(mse2, r22), linewidth=2)
-plt.xlabel("y test data")
-plt.ylabel("predicted")
-plt.title("Boosted Decision Tree Regression")
-plt.legend()
+plt.plot(y_test, y_1,'r.' , label="decision tree \n MSE: %.3f, R2: %.2f"% (mse1,r21), linewidth=2)
+plt.plot(y_test, y_2,  'b.',  label="adaboost \n MSE: %.3f, R2: %.2f"%(mse2, r22), linewidth=2)
+plt.xlabel('act. T$_c$ in K', fontsize =32)
+plt.ylabel("pred. T$_c$ in K ", fontsize= 32)
+#plt.title("Boosted Decision Tree Regression")
+plt.tick_params(size =24, labelsize=26)
+plt.tight_layout()
+plt.legend(fontsize = 20)
+plt.savefig(filep/'sklearn_pred_vs_act.pdf')
 plt.show()

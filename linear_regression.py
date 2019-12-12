@@ -23,6 +23,7 @@ def GridCV(X,y,Xtest, ytest, lam_path, folds, toi, fnum, reg, reg_type):
     reg instance of Regression class
     reg_type regression type, str either 'LASSO' or 'Ridge'
     """
+
     features = X.shape[1]
     for lam in lam_path:
                 Xinner_train, Xinner_test, yinner_train, yinner_test = CV(X,y, folds =folds)

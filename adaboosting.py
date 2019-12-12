@@ -2,7 +2,7 @@
 """
 Script for Adaboost class
 """
-from helper_functions import scaler, MSE, importData
+#from helper_functions import scaler, MSE, importData
 from sklearn.model_selection import train_test_split
 from sklearn import tree
 import numpy as np
@@ -10,7 +10,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 class AdaBoost:
     
-    def __init__(self, iterations, depth, X_train, y_train, X_test, y_test, X_eval = None , y_eval = None):
+    def __init__(self, iterations, depth, loss_func, X_train, y_train, X_test, y_test, X_eval = None , y_eval = None):
         '''
         Initialise the parameters of the AdaBoost.
         
@@ -30,7 +30,25 @@ class AdaBoost:
         self.X_train, self.y_train, self.X_test, self.y_test = X_train, y_train, X_test, y_test
         self.X_eval, self.y_eval = X_eval, y_eval
         self.n = self.X_train.shape[0]
+        self.loss_func = loss_func
         
+    def main(self, best_mse, best_iteration, best_depth, best_function, best_params):
+        
+        AdaBoost.training(self)
+        train_predict, train_MSE, train_R2 = AdaBoost.evaluate(self, self.X_train, self.y_train)
+        test_predict, test_MSE, test_R2 = AdaBoost.evaluate(self, self.X_test, self.y_test)
+        
+        if test_MSE < best_mse:
+                        best_mse = test_MSE
+                        best_trees = self.trees
+                        best_iteration_weight = self.iteration_weight
+                        best_iteration = self.iterations
+                        best_depth = self.depth
+                        best_function = self.loss_func
+                        best_params = zip(best_trees, best_iteration_weight)
+                        
+        return train_MSE, train_R2, test_MSE, test_R2, best_mse, best_iteration, best_depth, best_function, best_params
+    
     #define the loss functions for adaboost
     def linear (self, y_predict, y):
         loss = np.absolute(y_predict - y)
@@ -67,7 +85,7 @@ class AdaBoost:
             
         return loss
     
-    def training(self, loss_func):
+    def training(self):
         '''
         Function to train or begin the adaboost iterative process. 
         
@@ -79,7 +97,7 @@ class AdaBoost:
         loss (and 'test_loss'): (n_samples,1)
         Returns the loss depending on which loss function is calculated from the training set and y.
         '''
-        self.loss_func = loss_func
+        
         W = np.ones(self.n) # initialise sample weights as 1.0
         self.test_predict_iter = np.zeros(len(self.y_test))
         self.train_predict_iter = np.zeros(len(self.y_train))
@@ -116,7 +134,7 @@ class AdaBoost:
             #stop learning 
             if loss_ave >= 0.5:
                 print ('breaking Adaboost')
-                print(len(test_mask))
+                #print(len(test_mask))
                 test_mask[[i]] = False
                 train_mask[[i]] = False
                 self.iterations = i - 1
@@ -134,7 +152,7 @@ class AdaBoost:
             W = W_norm * (beta**(1-loss))
             self.trees.append(reg_weak)
 
-    def evaluate(self, X, y):
+    def evaluate(self, X, y, in_trees = None, in_iteration_weight = None):
         '''
         This function finds the ensemble prediction and returns the mse
         and r2 score of this prediction.
@@ -151,24 +169,26 @@ class AdaBoost:
             r2 : float
         '''
         prediction = []
+        if in_trees == None:
+            trees = self.trees
+            iteration_weight = self.iteration_weight
+        else:
+            trees = in_trees
+            iteration_weight = in_iteration_weight
         
-        for i in range(0, self.iterations):
-            prediction.append(self.trees[i].predict(X))
+        for i in range(0, len(trees)):
+            prediction.append(trees[i].predict(X))
         prediction = np.array(prediction).T
         ordered_matrix_idx = np.argsort(prediction, axis = 1)
         
-        iteration_weight_cumu = np.cumsum(self.iteration_weight[ordered_matrix_idx], axis = 1)
+        iteration_weight_cumu = np.cumsum(iteration_weight[ordered_matrix_idx], axis = 1)
         max_cumu = iteration_weight_cumu[:, -1][:, np.newaxis]
         median_true = iteration_weight_cumu >= 0.5 * max_cumu
         median_idx = median_true.argmax(axis=1)
         
         median_iteration = ordered_matrix_idx[np.arange(X.shape[0]), median_idx]
         median_predict = prediction[np.arange(X.shape[0]), median_iteration]
-        '''
-        for i in range(0, X.shape[0]):
-            median_iteration = ordered_matrix_idx[i, median_idx[i]]
-            median_predict = prediction[i, median_iteration]
-        '''
+        
         
         MSE, R2 = AdaBoost.calcMSE_R2(self, median_predict, y)
         
@@ -212,19 +232,7 @@ class AdaBoost:
         
         return X_train, X_test, y_train, y_test
 
-    def tree_normal(self):
-        tree_reg= tree.DecisionTreeRegressor(max_depth = 3)
-        tree_reg.fit(self.X_train, self.y_train)
-        y_predict = tree_reg.predict(self.X_test)
-        y_train_predict = tree_reg.predict(self.X_train)
-        
-        #print("Train set R2 score is: {:.2f}".format(tree_reg.score(X_train,y_train)))
-        print("Test set R2 score is: {:.2f}".format(tree_reg.score(self.X_test, self.y_test)))
-        
-        mse_predict = MSE(self.y_test, y_predict)
-        print('Test set mse is: {:.2f}'.format(mse_predict))
-        print('The number of leaves in the decision tree is:',tree_reg.get_n_leaves())
-    
+
 
     
 
