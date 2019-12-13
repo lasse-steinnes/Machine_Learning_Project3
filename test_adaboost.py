@@ -33,7 +33,7 @@ X_train, X_test, y_train, y_test = shuffleAndsplit(X, y)
 rng = np.random.RandomState(1)
 
 # Fit regression model
-depth = 20
+depth = 15
 regr_1 = tree.DecisionTreeRegressor(max_depth=depth)
 
 regr_2 = AdaBoostRegressor(tree.DecisionTreeRegressor(max_depth=depth),
@@ -62,8 +62,8 @@ plt.figure(figsize=(10,10))
 ymax = y_test[np.argmax(y_test)]
 plt.plot([0,ymax],[0,ymax], linestyle ='--')
 #plt.scatter(X_train, y_train, c="k", label="training samples")
-plt.plot(y_test, y_1,'r.' , label="decision tree \n MSE: %.3f, R2: %.2f"% (mse1,r21), linewidth=2)
-plt.plot(y_test, y_2,  'b.',  label="adaboost \n MSE: %.3f, R2: %.2f"%(mse2, r22), linewidth=2)
+#plt.plot(y_test, y_1,'r.' , label="decision tree \n MSE: %.3f, R2: %.2f"% (mse1,r21), linewidth=2)
+plt.scatter(y_test, y_2,  label="adaboost \n MSE: %.3f, R2: %.2f"%(mse2, r22))
 plt.xlabel('act. T$_c$ in K', fontsize =32)
 plt.ylabel("pred. T$_c$ in K ", fontsize= 32)
 #plt.title("Boosted Decision Tree Regression")

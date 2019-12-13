@@ -112,6 +112,7 @@ class AdaBoost:
         self.test_loss = np.zeros((self.iterations, len(self.y_test)))
         train_mask = np.ones(self.iterations, dtype = bool)
         test_mask = np.ones(self.iterations, dtype = bool)
+        
         for i in range(0, self.iterations): 
             #normalise the weights
             W_norm = W / np.sum(W)
@@ -141,7 +142,7 @@ class AdaBoost:
                 self.loss = self.loss[train_mask]
                 self.test_loss = self.test_loss[test_mask]
                 
-                return  self.loss, self.test_loss
+                return
             
             beta = loss_ave / (1.0 - loss_ave)
             self.iteration_weight[i] = np.log(1.0 / beta)
