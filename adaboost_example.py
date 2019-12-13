@@ -159,7 +159,7 @@ def pred_vs_actual(y,ymax, p, MSE, R2, filepath):
 filep = Path("./Results/adaboost/")
 X, y, ymax = DataWorkflow()
 iter_sch = [50]
-depth_sch = [15,20]
+depth_sch = [15]
 functions = ["exponential"]            # ["square", "linear", "exponential"]
 toi, y_eval, eval_predict, MSE, R2  = boost(X, y, ymax, iter_sch, depth_sch, functions, filep, folds = 10, evaluationSet = True)
 toi.to_csv(filep/'toi.csv')
