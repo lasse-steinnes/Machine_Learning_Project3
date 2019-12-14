@@ -90,15 +90,14 @@ class Regression():
         MSE = mean_squared_error(self.y, pred)
         return MSE, self.clf.score(self.X, self.y)
 
-    def weak_regressor(self,booster, max_dp, n,eta = 0.1,gamma = 0, alpha = 0, lam = 1):
+    def weak_regressor(self,booster, max_dp, child_w,subs,cols, n,eta = 0.1,gamma = 0, alpha = 0, lam = 1):
         """
         -------------------------------------
         Weak regressor method, gradient boosting
         -------------------------------------
-
         booster: Should be a string, either gblinear,gbtree or dart
         max_dp: max depth of tree
-        n: Number of estimators
+        n: Number of estimators (eg.number of trees)
         eta: learning rate
         gamma: "Minimum loss reduction required to make a further partition on a leaf node of the tree"
         alpha: l1,regularisation parameter
@@ -106,11 +105,13 @@ class Regression():
         """
         self.n = n; self.gamma = gamma
         self.booster = booster; self.max_dp = max_dp
+        self.cols = cols; self.subs = subs
         self.eta = eta; self.alpha = alpha
-        self.lam = lam
+        self.lam = lam; self.child_w = child_w
 
-        self.clf = xgb.XGBRegressor(max_depth = self.max_dp, learning_rate = self.eta, n_estimators = self.n, verbosity = 1, gamma = self.gamma, reg_alpha = self.alpha, \
-                    reg_lambda = self.lam, booster= self.booster, min_child_weight = 1, subsample = 1,colsample_bytree= 1, num_parallel_tree = 1)
+
+        self.clf = xgb.XGBRegressor(importance_type = 'gain', objective ='reg:squarederror',nthread = 4, max_depth = self.max_dp, learning_rate = self.eta, n_estimators = self.n, verbosity = 1, gamma = self.gamma, reg_alpha = self.alpha, \
+                    reg_lambda = self.lam, booster= self.booster, min_child_weight = self.child_w, subsample = self.subs,colsample_bytree= self.cols, num_parallel_tree = 1)
 
         fit = self.clf.fit(self.X,self.y)
         if booster == 'gblinear':
@@ -146,7 +147,8 @@ class Regression():
                 y = self.y_test
         pred = Regression.predict(self,X)
         MSE = mean_squared_error(pred, y)
-        R2 = self.clf.score(X,y) #score might return different things for different models!
+        R2 =  r2_score(y,pred)
+        self.y_pred = pred
         return MSE, R2
 
     def importData(self, filepath):

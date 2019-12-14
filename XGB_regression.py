@@ -39,7 +39,7 @@ def XGB_GridCV(X,y,Xtest, ytest, paths,  folds, toi, fnum, reg):
         d.update({"par%i"%k:reg.weights[k] for k in range(features)})
         toi = toi.append(d, ignore_index=True)
         fnum +=1
-    return toi, fnum
+    return ytest,reg.y_pred,toi, fnum
 
 # Function that performs cross validation
 def XGB_CV(X, y, ymax,paths, folds = 10):
@@ -58,8 +58,8 @@ def XGB_CV(X, y, ymax,paths, folds = 10):
     Xtrain, Xtest, ytrain, ytest = CV(X,y, folds = folds)
     fnum = 0
     for i in tqdm(range(folds)):
-        toi, fnum = XGB_GridCV(Xtrain[i],ytrain[i], Xtest[i], ytest[i], paths, folds//2, toi, fnum, reg)
-    return toi
+        y_test, pred,toi, fnum = XGB_GridCV(Xtrain[i],ytrain[i], Xtest[i], ytest[i], paths, folds//2, toi, fnum, reg)
+    return y_test,pred,toi
 
 # storing statistics
 def XGB_stats(toi, filepath, plot_par = False, features =81, skip_eval=False):
@@ -121,9 +121,10 @@ def XGB_stats(toi, filepath, plot_par = False, features =81, skip_eval=False):
     return tabel["test"][inds3]
 
 #  Plot the predicted versus the actual
-def pred_vs_actual(X,y,ymax, weights, filepath):
+def pred_vs_actual(y,y_pred,ymax, filepath):
 
-    p = np.dot(X, weights)
+    p = y_pred
+    print(len(p),len(y))
     plt.figure(figsize=(10,10))
     plt.scatter(y*ymax, p*ymax)
     plt.plot([0,ymax],[0,ymax], linestyle ='--')
@@ -166,7 +167,7 @@ features = X.shape[1]
 reg = "XGB"
 print('Regression: XGB')
 print("Grid")
-toi = XGB_CV(X,y,ymax,paths, folds =5)
+y_test,y_pred,toi = XGB_CV(X,y,ymax,paths, folds =5)
 toi.to_csv(filep/reg/'toi.csv')
 best_par = XGB_stats(toi, filep/reg, plot_par=True, features= features, skip_eval=skip)
-pred_vs_actual(X[::50], y[::50], ymax , best_par, filep/reg)
+pred_vs_actual(y_test,y_pred, ymax, filep/reg)
