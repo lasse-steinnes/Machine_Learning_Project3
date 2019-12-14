@@ -67,7 +67,7 @@ def SVM_stats(toi, filepath, plot_par = False, features =81, skip_eval=False):
     find optimal model by looking at toi, evaluate CV performance
     returns optimal parameters
     """
-    f = open(filepath/"svm_stats.txt",'w')
+    f = open(filepath/"svm_stats2.txt",'w')
 
     #find best row based on test
     idx = toi[toi["data set"]=="test"]["MSE"].idxmin() # finding mininum MSE
@@ -116,7 +116,7 @@ def SVM_stats(toi, filepath, plot_par = False, features =81, skip_eval=False):
         plt.xlim(-0.5, features+0.5)
         plt.tick_params(size =24, labelsize=26)
         plt.tight_layout()
-        plt.savefig(filepath/'SVM_params.pdf')
+        plt.savefig(filepath/'SVM_params2.pdf')
 
     return tabel["test"][inds3]
 
@@ -133,7 +133,7 @@ def pred_vs_actual(X,y,ymax, weights, filepath):
     plt.ylim(0, ymax)
     plt.tick_params(size =24, labelsize=26)
     plt.tight_layout()
-    plt.savefig(filepath/'SVM_pred_vs_act.pdf')
+    plt.savefig(filepath/'SVM_pred_vs_act2.pdf')
 
 # Finding the best model
 
@@ -156,6 +156,6 @@ reg = "SVM"
 print('Regression: SVM')
 print("Grid")
 toi =SVM_CV(X,y,ymax,epsilon,penalty, folds =5)
-toi.to_csv(filep/reg/'toi.csv')
-best_par = SVM_stats(toi, filep/reg, plot_par=True, features= features, skip_eval=skip)
+toi.to_csv(filep/reg/'toi2.csv')
+best_par = XGB_stats(toi, filep/reg, plot_par=True, features= features, skip_eval=skip)
 pred_vs_actual(X[::50], y[::50], ymax , best_par, filep/reg)
