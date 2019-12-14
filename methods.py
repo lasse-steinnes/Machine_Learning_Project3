@@ -110,7 +110,7 @@ class Regression():
         self.lam = lam; self.child_w = child_w
 
 
-        self.clf = xgb.XGBRegressor(objective ='reg:squarederror',nthread = 4, max_depth = self.max_dp, learning_rate = self.eta, n_estimators = self.n, verbosity = 1, gamma = self.gamma, reg_alpha = self.alpha, \
+        self.clf = xgb.XGBRegressor(importance_type = 'gain', objective ='reg:squarederror',nthread = 4, max_depth = self.max_dp, learning_rate = self.eta, n_estimators = self.n, verbosity = 1, gamma = self.gamma, reg_alpha = self.alpha, \
                     reg_lambda = self.lam, booster= self.booster, min_child_weight = self.child_w, subsample = self.subs,colsample_bytree= self.cols, num_parallel_tree = 1)
 
         fit = self.clf.fit(self.X,self.y)
@@ -148,6 +148,7 @@ class Regression():
         pred = Regression.predict(self,X)
         MSE = mean_squared_error(pred, y)
         R2 =  r2_score(y,pred)
+        self.y_pred = pred
         return MSE, R2
 
     def importData(self, filepath):
