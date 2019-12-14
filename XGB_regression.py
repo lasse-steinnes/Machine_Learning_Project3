@@ -35,7 +35,7 @@ parameters = {'nthread':[4],
               'min_child_weight': [1,2,4],
               'subsample': [0.7,0.8,0.9],
               'colsample_bytree': [0.7,0.8,0.9],
-              'n_estimators': [81]}
+              'n_estimators': [100]} # number of trees to fit
 
 grid = GridSearchCV(estimator=reg, param_grid=parameters, scoring='r2', n_jobs=4, cv= 5)
 grid.fit(X, y)
