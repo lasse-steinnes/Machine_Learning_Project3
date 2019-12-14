@@ -115,6 +115,11 @@ class Regression():
         fit = self.clf.fit(self.X,self.y)
         if booster == 'gblinear':
             self.weights = self.clf.coef_  # only for linear learners
+        else:
+            self.weights = feature_importance = self.clf.feature_importances_
+        pred = Regression.predict(self, self.X)
+        MSE = mean_squared_error(self.y, pred)
+        return MSE, r2_score(self.y,pred)
 
     def predict(self,x_test, rescaled=False):
         """
