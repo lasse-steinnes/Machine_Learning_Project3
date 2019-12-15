@@ -124,7 +124,6 @@ def XGB_stats(toi, filepath, plot_par = False, features =81, skip_eval=False):
 def pred_vs_actual(y,y_pred,ymax, filepath):
 
     p = y_pred
-    print(len(p),len(y))
     plt.figure(figsize=(10,10))
     plt.scatter(y*ymax, p*ymax)
     plt.plot([0,ymax],[0,ymax], linestyle ='--')
@@ -156,7 +155,7 @@ paths = [booster,learning_rate,gamma,alpha,lam,depth,child_weight, subs,cols, n_
 
 filep = Path("./Results/")
 
-skip = True
+skip = False
 X,y,ymax = DataWorkflow()
 
 #creat const. feature

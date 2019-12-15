@@ -27,6 +27,20 @@ subsample: 0.800000000
 colsample_bytree: 0.800000000
 n_trees: nan
 
+eval: 
+MSE: 0.003145797
+R2: 0.909074861
+unc. Tc: 10.376170420
+eta: 0.100000000
+gamma: 0.000000000
+alpha: 0.001000000
+lambda: 0.000000000
+max_depth: 9.000000000
+min_child_weight: 2.000000000
+subsample: 0.800000000
+colsample_bytree: 0.800000000
+n_trees: 200.000000000
+
 Average model:
 train CV results: 
 MSE: 0.000440351 +- 0.000048881
@@ -37,4 +51,9 @@ test CV results:
 MSE: 0.003126649 +- 0.000089116
 R2: 0.908667517 +- 0.003110112
 unc. Tc: 10.343703889 +- 0.147271494
+
+eval CV results: 
+MSE: 0.003111610 +- 0.000148549
+R2: 0.909194818 +- 0.004915856
+unc. Tc: 10.317280087 +- 0.246423587
 
