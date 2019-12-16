@@ -145,7 +145,7 @@ class AdaBoost:
                 return
             
             beta = loss_ave / (1.0 - loss_ave)
-            self.iteration_weight[i] = np.log(1.0 / beta)
+            self.iteration_weight[i] = np.log(1.0 / beta) #in the report this is called alpha
             self.beta[i] = beta
             self.test_predict_iter += beta* test_predict
             self.train_predict_iter += beta* train_predict
