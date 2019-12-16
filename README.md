@@ -9,6 +9,8 @@ Folders:
   
   Results: contains the csv files and figures from the different methods: SVM, Adaboost, Linear Regression, XGBoost
   
+  Report: contain the pdf version of the report for FYS-STK4155 project 3
+  
 Files:
 
   BaysianOptimizer.py contains a class for maximising a models score function with respect to the models hyper-parameters.
