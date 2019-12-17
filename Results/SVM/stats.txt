@@ -1,0 +1,5 @@
+Most importand parameters based on best model:
+1. importand parameter: wtd_gmean_atomic_radius
+2. importand parameter: wtd_mean_atomic_radius
+3. importand parameter: const.
+

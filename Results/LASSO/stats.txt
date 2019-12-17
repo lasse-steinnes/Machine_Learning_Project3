@@ -33,8 +33,7 @@ MSE: 0.009083518 +- 0.000418895
 R2: 0.734910504 +- 0.010830237
 unc. Tc: 17.627472553 +- 0.404730047
 
-
 Most importand parameters based on best model:
-1. importand parameter: wtd_std_fie
-2. importand parameter: mean_fie
-3. importand parameter: std_FusionHeat
+1. importand parameter: wtd_gmean_atomic_radius
+2. importand parameter: wtd_mean_atomic_radius
+3. importand parameter: entropy_fie
