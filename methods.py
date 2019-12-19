@@ -102,6 +102,7 @@ class Regression():
         gamma: "Minimum loss reduction required to make a further partition on a leaf node of the tree"
         alpha: l1,regularisation parameter
         lambda: l2,regularisation paramter
+        For more see the XGB API reference.
         """
         self.n = n; self.gamma = gamma
         self.booster = booster; self.max_dp = max_dp

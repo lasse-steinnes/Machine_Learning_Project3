@@ -15,7 +15,10 @@ from pathlib import Path
 # Function that performs manual grid search
 def XGB_GridCV(X,y,Xtest, ytest, paths,  folds, toi, fnum, reg):
     """
-    Function that performs grid search for SVM linear regression
+    Function that performs grid search for XGB regression
+    Paths is all the best hyperparameters from the gridsearch (XGBregressiongrid.py)
+    in an array object.
+    paths: [booster,learning_rate,gamma,alpha,lam,depth,child_weight, subs,cols, n_estimators]
     """
     booster,learning_rate,gamma,alpha,lam,depth,child_weight, subs,cols, n_estimators = paths
     features = X.shape[1]
@@ -45,7 +48,7 @@ def XGB_GridCV(X,y,Xtest, ytest, paths,  folds, toi, fnum, reg):
 def XGB_CV(X, y, ymax,paths, folds = 10):
     """
     Performs cross validation for XGB regression with hyperparameter tuning (grid search)
-    A nested CV of folds*folds/2 is performed for each element per hyperparameter
+    A nested CV of folds*folds/2 is performed for each hyperparameter
     kargs:
         folds:            number of cross validations
         Parameter paths:  list of hyper parameters to test
