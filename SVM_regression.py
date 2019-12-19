@@ -46,7 +46,7 @@ def SVM_GridCV(X,y,Xtest, ytest, eps_path, penalty_path,  folds, toi, fnum, reg)
 def SVM_CV(X, y, ymax, epsilon_path, penalty_path, folds = 10):
     """
     Performs cross validation for SVM regression with hyperparameter tuning for epsilon and cost penalty (grid search)
-    A nested CV of folds*folds/2 is performed for each element in epsilon
+    A nested CV of folds*folds/2 is performed for each element in epsilon and cost penalty.
     kargs:
         folds:            number of cross validations
         Parameter paths:  list of hyper parameters to test
