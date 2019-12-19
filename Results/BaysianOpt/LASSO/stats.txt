@@ -36,6 +36,6 @@ unc. Tc: 18.071040746 +- 0.759455315
 average lambda: 0.000503226 +- 0.001596122
 
 Most importand parameters based on best model:
-1. importand parameter: wtd_entropy_FusionHeat
-2. importand parameter: wtd_gmean_ThermalConductivity
-3. importand parameter: entropy_atomic_mass
+1. importand parameter: wtd_gmean_atomic_radius
+2. importand parameter: wtd_mean_atomic_radius
+3. importand parameter: const.

@@ -6,15 +6,30 @@ import matplotlib.pyplot as plt
 import csv 
 
 path = Path('./')
-
-def extract(path, av_lam=False):
+def best_par(best, path, offset=1):
     #get headers from train
     path_to_columns = Path('/home/lukas/Documents/Machine_Learning_Project3/Data/train.csv')
-    unique_headers = set()
+    unique_headers = []
     with open(path_to_columns, 'r') as fin:
         csvin = csv.reader(fin)
-        unique_headers.update(next(csvin, []))
-    unique_headers = list(unique_headers)
+        unique_headers.append(next(csvin, []))
+    
+    unique_headers = np.append(['const.'], unique_headers)
+    print(unique_headers)
+    np_par = best.filter(regex="par.*")
+
+    np_par_args = np.abs(np_par.to_numpy())
+    np_par_args= np_par_args.argsort()
+    
+    f = open(path/'stats.txt', 'a')
+    f.write("Most importand parameters based on best model:\n")
+    for i in [-1,-2,-3]:
+        print(np_par_args[i])
+        f.write("%i. importand parameter: %s\n"%(-i, unique_headers[np_par_args[i]]))
+    f.close()
+
+def extract(path, av_lam=False):
+    
     for fold in ['LinearRegression', 'Ridge', 'LASSO']:
         if fold == 'LinearRegression':
             set_filter ='test'
@@ -30,15 +45,11 @@ def extract(path, av_lam=False):
             lam = df["lambda"].mean()
             std_lam= df["lambda"].std()
             f.write("average lambda: %.9f +- %.9f\n\n"%(lam, std_lam))
-            
+        f.close()
         idx = df[df["data set"]==set_filter]["MSE"].idxmin()
         best = df.iloc[idx]
-        np_par = best.filter(regex="par.*").to_numpy()
-        np_par_args = np.abs(np_par).argsort()
-        f.write("Most importand parameters based on best model:\n")
-        for i in [-1,-2,-3]:
-            f.write("%i. importand parameter: %s\n"%(-i, unique_headers[np_par_args[i] - 1])) #parameter shifted by -1 because const. parameter not in name!
-        f.close()
+        best_par(best, path/fold)
+
 def comp_search(path, toi =None):
     if toi==None:
         toi = pd.DataFrame(columns=["MSE", "lambda", "Regression"])
@@ -48,8 +59,8 @@ def comp_search(path, toi =None):
             df['Regression']=fold
             toi = toi.append(df, ignore_index = True)
     return toi
-#extract(path)
-#extract(path/'BaysianOpt', av_lam=True)
+extract(path)
+extract(path/'BaysianOpt', av_lam=True)
 
 toi = comp_search(path)
 toi["Search"] ='Grid'

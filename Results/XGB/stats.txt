@@ -1,0 +1,12 @@
+From Gain:
+Most importand parameters based on best model:
+1. importand parameter: range_ThermalConductivity
+2. importand parameter: range_atomic_radius
+3. importand parameter: wtd_gmean_ThermalConductivity
+
+From Weights:
+Most importand parameters based on best model:
+1. importand parameter: wtd_mean_atomic_mass
+2. importand parameter: wtd_entropy_atomic_mass
+3. importand parameter: mean_atomic_mass
+
